@@ -85,12 +85,22 @@ def download_co2(_ANO, _MES, _DIA):
 	nome_arquivo = f"geos.chm.{_ANO}{_MES}{_DIA}{_ZULU}.nc4"
 	caminho_arquivo = f"{caminho_dados}{nome_arquivo}"
 
+	if os.path.exists(caminho_arquivo):
+		tamanho_original = int(resposta.headers.get("contenc-lenght", 0))
+		tamanho_baixado = os.path.getsize(caminho_arquivo)
+		if tamanho_original == tamanho_baixado:
+			print(f"{cyan}\nARQUIVO EXISTENTE:\n{reset}{caminho_arquivo}")
+			return
+		else:
+			print(f"{red}\nARQUIVO INCOMPLETO:\n{reset}{caminho_arquivo}")
+			print(f"{cyan}\n\nREINICIANDO DOWNLOAD!\n\n{reset}")			
+
 	#### Response/Request
 	try:
 		resposta = requests.get(url_nccs, stream = True)
 		resposta.raise_for_status()
-		total_resp = int(resposta.headers.get("content-length", 0))
-		progresso = tqdm(total = total_resp, unit = "B", unit_scale = True,
+		tamanho_original = int(resposta.headers.get("content-length", 0))
+		progresso = tqdm(total = tamanho_original, unit = "B", unit_scale = True,
 							desc = os.path.basename(caminho_arquivo))
 		if resposta.status_code == 200:
 			os.makedirs(caminho_dados, exist_ok = True)
