@@ -83,7 +83,7 @@ def download_co2():
 	caminho_arquivo = f"{caminho_dados}{nome_arquivo}"
 
 	if os.path.exists(caminho_arquivo):
-		tamanho_original = int(resposta.headers.get("contenc-lenght", 0))
+		tamanho_original = int(resposta.headers.get("content-lenght", 0))
 		tamanho_baixado = os.path.getsize(caminho_arquivo)
 		if tamanho_original == tamanho_baixado:
 			print(f"{cyan}\nARQUIVO EXISTENTE:\n{reset}{caminho_arquivo}")
