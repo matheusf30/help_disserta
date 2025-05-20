@@ -43,8 +43,8 @@ reset = "\033[0m"
 ano_atual = str(datetime.today().year)
 hoje = datetime.today().strftime("%Y-%m-%d")
 _ANOS = list(range(2014, 2026, 1))#list(range(2014, 2025, 1))
-_MESES = [f"{m:02d}" for m in range(2, 13, 1)]
-_DIAS = [f"{d:02d}" for d in range(20, 32, 1)]
+_MESES = [f"{m:02d}" for m in range(1, 13, 1)]
+_DIAS = [f"{d:02d}" for d in range(1, 32, 1)]
 _ZULUS = [f"{z:02d}" for z in range(0, 24, 3)]
 '''
 _ANOS = sorted(_ANOS, reverse = True)
