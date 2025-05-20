@@ -43,8 +43,8 @@ reset = "\033[0m"
 ano_atual = str(datetime.today().year)
 hoje = datetime.today().strftime("%Y-%m-%d")
 _ANOS = list(range(2014, 2026, 1))#list(range(2014, 2025, 1))
-_MESES = [f"{m:02d}" for m in range(1, 13, 1)]
-_DIAS = [f"{d:02d}" for d in range(1, 32, 1)]
+_MESES = [f"{m:02d}" for m in range(2, 13, 1)]
+_DIAS = [f"{d:02d}" for d in range(20, 32, 1)]
 _ZULUS = [f"{z:02d}" for z in range(0, 24, 3)]
 '''
 _ANOS = sorted(_ANOS, reverse = True)
@@ -85,15 +85,16 @@ def download_co2():
 
 	if os.path.exists(caminho_arquivo_AS):
 		tamanho_recortado = os.path.getsize(caminho_arquivo_AS)
-		print(f"{reset}\n\n{tamanho_recortado}{cyan} == {reset}{tamanho_recortado}\n\n")
-		if tamanho_recortado == 67249923:
-			print(f"{reset}\n\n{cyan} == {reset}{tamanho_recortado/1000000}\n\n")
+		print(f"{reset}\n\n{tamanho_recortado}{cyan} =~= {reset}{int(tamanho_recortado/1000000)}M\n\n")
+		tamanho_recortado = int(tamanho_recortado/1000000)
+		if tamanho_recortado == 67:
+			print(f"{reset}\n\n{cyan} Tamanho do Arquivo =~= {reset}{tamanho_recortado}M\n\n")
 			print(f"{cyan}\nARQUIVO EXISTENTE:\n{reset}{caminho_arquivo}")
 			return
 		else:
 			resposta = requests.get(url_nccs, stream = True)
 			tamanho_original = int(resposta.headers.get("content-length", 0))
-			print(f"{reset}\n\n{tamanho_original/1000000}{red} =!= {reset}{tamanho_recortado/1000000}\n\n")
+			print(f"{reset}\n\n{tamanho_original/1000000}{red} =!= {reset}{tamanho_recortado}\n\n")
 			print(f"{red}\nARQUIVO INCOMPLETO:\n{reset}{caminho_arquivo}")
 			print(f"{cyan}\n\nREINICIANDO DOWNLOAD!\n\n{reset}")
 			try:
