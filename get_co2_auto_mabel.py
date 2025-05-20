@@ -88,9 +88,10 @@ def download_co2(_ANO, _MES, _DIA):
 
 	if os.path.exists(caminho_arquivo_AS):
 		tamanho_recortado = os.path.getsize(caminho_arquivo_AS)
-		print(f"{reset}\n\n{tamanho_recortado}{cyan} == {reset}{tamanho_recortado}\n\n")
-		if tamanho_recortado == 67249923:
-			print(f"{reset}\n\n{cyan} == {reset}{tamanho_recortado/1000000}\n\n")
+		print(f"{reset}\n\n{tamanho_recortado}{cyan} =~= {reset}{int(tamanho_recortado/1000000)}M\n\n")
+		tamanho_recortado = int(tamanho_recortado/1000000)
+		if tamanho_recortado == 67:
+			print(f"{reset}\n\n{cyan} Tamanho do Arquivo =~= {reset}{tamanho_recortado}M\n\n")
 			print(f"{cyan}\nARQUIVO EXISTENTE:\n{reset}{caminho_arquivo}")
 			return
 		else:
