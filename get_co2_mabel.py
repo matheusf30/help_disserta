@@ -42,7 +42,7 @@ reset = "\033[0m"
 
 ano_atual = str(datetime.today().year)
 hoje = datetime.today().strftime("%Y-%m-%d")
-_ANOS = list(range(2020, 2024, 1))#list(range(2014, 2025, 1))
+_ANOS = list(range(2014, 2026, 1))#list(range(2014, 2025, 1))
 _MESES = [f"{m:02d}" for m in range(1, 13, 1)]
 _DIAS = [f"{d:02d}" for d in range(1, 32, 1)]
 _ZULUS = [f"{z:02d}" for z in range(0, 24, 3)]
@@ -83,12 +83,15 @@ def download_co2():
 	caminho_arquivo = f"{caminho_dados}{nome_arquivo}"
 
 	if os.path.exists(caminho_arquivo):
-		tamanho_original = int(resposta.headers.get("content-lenght", 0))
+		resposta = requests.get(url_nccs, stream = True)
+		tamanho_original = int(resposta.headers.get("content-length", 0))
 		tamanho_baixado = os.path.getsize(caminho_arquivo)
 		if tamanho_original == tamanho_baixado:
+			print(f"{reset}\n\n{tamanho_original/1000000}{cyan} == {reset}{tamanho_baixado/1000000}\n\n")
 			print(f"{cyan}\nARQUIVO EXISTENTE:\n{reset}{caminho_arquivo}")
 			return
 		else:
+			print(f"{reset}\n\n{tamanho_original/1000000}{red} =!= {reset}{tamanho_baixado/1000000}\n\n")
 			print(f"{red}\nARQUIVO INCOMPLETO:\n{reset}{caminho_arquivo}")
 			print(f"{cyan}\n\nREINICIANDO DOWNLOAD!\n\n{reset}")		
 
