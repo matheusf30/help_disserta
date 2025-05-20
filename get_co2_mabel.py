@@ -74,24 +74,26 @@ def download_co2():
 	#https://portal.nccs.nasa.gov/datashare/gmao/geos-fp/das/Y2014/M12/D08/
 	#### Definindo Variáveis
 	url_nasa = "https://portal.nccs.nasa.gov/datashare/gmao/geos-fp/das/"
-	filtro_crono = f"Y{_ANO}/M{_MES}/D{_DIA}/" # "Y2024/M09/D10/"
+	filtro_crono = f"Y{_ANO}/M{_MES}/D{_DIA}/"
 	arquivo = f"GEOS.fp.asm.inst3_3d_chm_Nv.{_ANO}{_MES}{_DIA}_{_ZULU}00.V01.nc4"
 	url_nccs = f"{url_nasa}{filtro_crono}{arquivo}"
 
 	caminho_dados = f"/dados3/operacao/geos_fp/{_ANO}/{_MES}/{_DIA}/"
 	nome_arquivo = f"geos.chm.{_ANO}{_MES}{_DIA}{_ZULU}.nc4"
 	caminho_arquivo = f"{caminho_dados}{nome_arquivo}"
+	caminho_arquivo_AS = f"{caminho_dados}AS_geos.chm.{_ANO}{_MES}{_DIA}{_ZULU}.nc4"
 
-	if os.path.exists(caminho_arquivo):
-		resposta = requests.get(url_nccs, stream = True)
-		tamanho_original = int(resposta.headers.get("content-length", 0))
-		tamanho_baixado = os.path.getsize(caminho_arquivo)
-		if tamanho_original == tamanho_baixado:
-			print(f"{reset}\n\n{tamanho_original/1000000}{cyan} == {reset}{tamanho_baixado/1000000}\n\n")
+	if os.path.exists(caminho_arquivo_AS):
+		tamanho_recortado = os.path.getsize(caminho_arquivo_AS)
+		print(f"{reset}\n\n{tamanho_recortado}{cyan} == {reset}{tamanho_recortado}\n\n")
+		if tamanho_recortado == 67249923:
+			print(f"{reset}\n\n{cyan} == {reset}{tamanho_recortado/1000000}\n\n")
 			print(f"{cyan}\nARQUIVO EXISTENTE:\n{reset}{caminho_arquivo}")
 			return
 		else:
-			print(f"{reset}\n\n{tamanho_original/1000000}{red} =!= {reset}{tamanho_baixado/1000000}\n\n")
+			resposta = requests.get(url_nccs, stream = True)
+			tamanho_original = int(resposta.headers.get("content-length", 0))
+			print(f"{reset}\n\n{tamanho_original/1000000}{red} =!= {reset}{tamanho_recortado/1000000}\n\n")
 			print(f"{red}\nARQUIVO INCOMPLETO:\n{reset}{caminho_arquivo}")
 			print(f"{cyan}\n\nREINICIANDO DOWNLOAD!\n\n{reset}")
 			try:
@@ -103,13 +105,11 @@ def download_co2():
 				if resposta.status_code == 200:
 					os.makedirs(caminho_dados, exist_ok = True)
 					with open(caminho_arquivo, "wb") as file:
-						for chunk in resposta.iter_content(chunk_size = 1024*1024):#999999999):
+						for chunk in resposta.iter_content(chunk_size = 1024*1024):
 							file.write(chunk)
 							progresso.update(len(chunk))
 					progresso.close()
 					print(f"{green}\nDownload realizado com sucesso e salvo como:\n{caminho_dados}\n{nome_arquivo}\n{reset}")
-					#os.remove(caminho_arquivo)
-					#print(f"{cyan}\nRemoção realizada com sucesso:\n{nome_arquivo}\n{reset}")
 				else:
 					print(f"""
 			{red}Falha ao realizar download do arquivo diretamente de: {url_nccs}
@@ -118,8 +118,6 @@ def download_co2():
 			{nome_arquivo}\n{reset}""")
 			except requests.exceptions.RequestException as e:
 				print(f"\n{red}RequestException:\n\n{e}\n\n{url_nccs}\n{reset}")		
-
-	#### Response/Request
 	else:
 		resposta = requests.get(url_nccs, stream = True)
 		tamanho_original = int(resposta.headers.get("content-length", 0))
@@ -135,13 +133,11 @@ def download_co2():
 			if resposta.status_code == 200:
 				os.makedirs(caminho_dados, exist_ok = True)
 				with open(caminho_arquivo, "wb") as file:
-					for chunk in resposta.iter_content(chunk_size = 1024*1024):#999999999):
+					for chunk in resposta.iter_content(chunk_size = 1024*1024):
 						file.write(chunk)
 						progresso.update(len(chunk))
 				progresso.close()
 				print(f"{green}\nDownload realizado com sucesso e salvo como:\n{caminho_dados}\n{nome_arquivo}\n{reset}")
-				#os.remove(caminho_arquivo)
-				#print(f"{cyan}\nRemoção realizada com sucesso:\n{nome_arquivo}\n{reset}")
 			else:
 				print(f"""
 		{red}Falha ao realizar download do arquivo diretamente de: {url_nccs}
