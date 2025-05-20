@@ -93,33 +93,63 @@ def download_co2():
 		else:
 			print(f"{reset}\n\n{tamanho_original/1000000}{red} =!= {reset}{tamanho_baixado/1000000}\n\n")
 			print(f"{red}\nARQUIVO INCOMPLETO:\n{reset}{caminho_arquivo}")
-			print(f"{cyan}\n\nREINICIANDO DOWNLOAD!\n\n{reset}")		
+			print(f"{cyan}\n\nREINICIANDO DOWNLOAD!\n\n{reset}")
+			try:
+				resposta = requests.get(url_nccs, stream = True)
+				resposta.raise_for_status()
+				tamanho_original = int(resposta.headers.get("content-length", 0))
+				progresso = tqdm(total = tamanho_original, unit = "B", unit_scale = True,
+									desc = os.path.basename(caminho_arquivo))
+				if resposta.status_code == 200:
+					os.makedirs(caminho_dados, exist_ok = True)
+					with open(caminho_arquivo, "wb") as file:
+						for chunk in resposta.iter_content(chunk_size = 1024*1024):#999999999):
+							file.write(chunk)
+							progresso.update(len(chunk))
+					progresso.close()
+					print(f"{green}\nDownload realizado com sucesso e salvo como:\n{caminho_dados}\n{nome_arquivo}\n{reset}")
+					#os.remove(caminho_arquivo)
+					#print(f"{cyan}\nRemoção realizada com sucesso:\n{nome_arquivo}\n{reset}")
+				else:
+					print(f"""
+			{red}Falha ao realizar download do arquivo diretamente de: {url_nccs}
+			{resposta.status_code}
+			{resposta.text}
+			{nome_arquivo}\n{reset}""")
+			except requests.exceptions.RequestException as e:
+				print(f"\n{red}RequestException:\n\n{e}\n\n{url_nccs}\n{reset}")		
 
 	#### Response/Request
-	try:
+	else:
 		resposta = requests.get(url_nccs, stream = True)
-		resposta.raise_for_status()
 		tamanho_original = int(resposta.headers.get("content-length", 0))
-		progresso = tqdm(total = tamanho_original, unit = "B", unit_scale = True,
-							desc = os.path.basename(caminho_arquivo))
-		if resposta.status_code == 200:
-			os.makedirs(caminho_dados, exist_ok = True)
-			with open(caminho_arquivo, "wb") as file:
-				for chunk in resposta.iter_content(chunk_size = 1024*1024):#999999999):
-					file.write(chunk)
-					progresso.update(len(chunk))
-			progresso.close()
-			print(f"{green}\nDownload realizado com sucesso e salvo como:\n{caminho_dados}\n{nome_arquivo}\n{reset}")
-			#os.remove(caminho_arquivo)
-			#print(f"{cyan}\nRemoção realizada com sucesso:\n{nome_arquivo}\n{reset}")
-		else:
-			print(f"""
-	{red}Falha ao realizar download do arquivo diretamente de: {url_nccs}
-	{resposta.status_code}
-	{resposta.text}
-	{nome_arquivo}\n{reset}""")
-	except requests.exceptions.RequestException as e:
-		print(f"\n{red}RequestException:\n\n{e}\n\n{url_nccs}\n{reset}")
+		print(f"{reset}\n\n{tamanho_original/1000000}{red} !!!{reset}\n\n")
+		print(f"{red}\nARQUIVO NUNCA BAIXADO:\n{reset}{caminho_arquivo}")
+		print(f"{cyan}\n\nINICIANDO DOWNLOAD!\n\n{reset}")
+		try:
+			resposta = requests.get(url_nccs, stream = True)
+			resposta.raise_for_status()
+			tamanho_original = int(resposta.headers.get("content-length", 0))
+			progresso = tqdm(total = tamanho_original, unit = "B", unit_scale = True,
+								desc = os.path.basename(caminho_arquivo))
+			if resposta.status_code == 200:
+				os.makedirs(caminho_dados, exist_ok = True)
+				with open(caminho_arquivo, "wb") as file:
+					for chunk in resposta.iter_content(chunk_size = 1024*1024):#999999999):
+						file.write(chunk)
+						progresso.update(len(chunk))
+				progresso.close()
+				print(f"{green}\nDownload realizado com sucesso e salvo como:\n{caminho_dados}\n{nome_arquivo}\n{reset}")
+				#os.remove(caminho_arquivo)
+				#print(f"{cyan}\nRemoção realizada com sucesso:\n{nome_arquivo}\n{reset}")
+			else:
+				print(f"""
+		{red}Falha ao realizar download do arquivo diretamente de: {url_nccs}
+		{resposta.status_code}
+		{resposta.text}
+		{nome_arquivo}\n{reset}""")
+		except requests.exceptions.RequestException as e:
+			print(f"\n{red}RequestException:\n\n{e}\n\n{url_nccs}\n{reset}")
 
 def cdo_mergetime():
 	caminho_dados = f"/dados3/operacao/geos_fp/{_ANO}/{_MES}/{_DIA}/"
