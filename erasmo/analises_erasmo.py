@@ -23,7 +23,7 @@ reset = "\033[0m"
 #################################################################################
 
 ### Encaminhamento aos Diretórios
-caminho_dados = "/home/sifapsc/scripts/matheus/help_disserta/"
+caminho_dados = "/home/sifapsc/scripts/matheus/help_disserta/erasmo/"
 caminho_correlacao = "/home/sifapsc/scripts/matheus/help_disserta/erasmo/"
 print(f"\nOS DADOS UTILIZADOS ESTÃO ALOCADOS NOS SEGUINTES CAMINHOS:\n\n{caminho_dados}\n\n")
 ### Renomeação variáveis pelos arquivos
@@ -37,8 +37,8 @@ haff = haff.rename(columns = {"Intervalo":"data", "prec_MN_82331":"prec_MN", "pe
 							"tsm_331":"tsm_MN", "tsm_336":"tsm_ITA"})
 haff["data"] = pd.to_datetime(haff["data"])
 haff.set_index("data", inplace = True)
-haff = haff[['haff', 'prec_MN', 'prec_ITA', 'rad_MN', 'rad_ITA',
-			'tsm_MN', 'tsm_ITA', 'EL', 'LA']]
+haff = haff[['haff', 'prec_MN', 'prec_ITA', 'rad_MN', 'rad_ITA', 'EL', 'LA']]
+			#'tsm_MN', 'tsm_ITA', 'EL', 'LA']]
 colunas = haff.columns
 
 haff[colunas] = haff[colunas].replace(",",".", regex = True)
