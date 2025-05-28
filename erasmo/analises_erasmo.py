@@ -84,7 +84,7 @@ for c in colunas:
 	elif tendencia.trend == "increasing":
 		print(f"\n{green}{c}\n{tendencia.trend}{reset}\n")
 
-sys.exit()
+#sys.exit()
 
 # Variabilidade
 ##### Correlação
