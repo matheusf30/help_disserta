@@ -28,33 +28,43 @@ caminho_correlacao = "/home/sifapsc/scripts/matheus/help_disserta/erasmo/"
 print(f"\nOS DADOS UTILIZADOS ESTÃO ALOCADOS NOS SEGUINTES CAMINHOS:\n\n{caminho_dados}\n\n")
 ### Renomeação variáveis pelos arquivos
 dados = "dados_erasmo.csv"
+enos = "https://origin.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/detrend.nino34.ascii.txt"
+
 ### Abrindo Arquivo
 haff = pd.read_csv(f"{caminho_dados}{dados}", low_memory = False)
+enos = pd.read_csv(f"{enos}", delim_whitespace = True)
 
 ### Pré-processamento
 haff = haff.rename(columns = {"Intervalo":"data", "prec_MN_82331":"prec_MN", "perc_ ITA_82336":"prec_ITA",
 							"rad_MN_331":"rad_MN", "rad_ITA_336":"rad_ITA",
 							"tsm_331":"tsm_MN", "tsm_336":"tsm_ITA"})
 haff["data"] = pd.to_datetime(haff["data"])
-haff.set_index("data", inplace = True)
-haff = haff[['haff', 'prec_MN', 'prec_ITA', 'rad_MN', 'rad_ITA', 'EL', 'LA']]
+haff = haff[["data", 'haff', 'prec_MN', 'prec_ITA', 'rad_MN', 'rad_ITA']]#, 'EL', 'LA']]
 			#'tsm_MN', 'tsm_ITA', 'EL', 'LA']]
 colunas = haff.columns
-
 haff[colunas] = haff[colunas].replace(",",".", regex = True)
 haff = haff.apply(pd.to_numeric, errors = "coerce")
+print(enos.columns)
+enos["data"] = pd.to_datetime(enos["YR"].astype(str) + enos["MON"].astype(str).str.zfill(2),
+								format = "%Y%m", errors = "coerce")
+haff["data"] = pd.to_datetime(haff["data"])
+enos = enos[["data", "ANOM"]]
+haff = haff.merge(enos, on = "data", how = "inner")
+haff.set_index("data", inplace = True)
+haff = haff.rename(columns = {"ANOM":"ENOS"})
+colunas = haff.columns
+haff.reset_index(inplace = True)
 print(f"\n{green}Dados Haff:\n{reset}{haff}\n")
 print(f"\n{green}Dados Haff (colunas):\n{reset}{colunas}\n")
 print(f"\n{green}Dados Haff (básico):\n{reset}{haff.describe()}\n")
 print(f"\n{green}Dados Haff (variáveis):\n{reset}{haff.dtypes}\n")
-
-
+print(f"\n{green}Dados ENOS:\n{reset}{enos}\n")
+#sys.exit()
 # Avaliar tendência (MannKandall - tirar sazonalidade)
-haff["mes"] = haff.index.month
+haff["mes"] = haff["data"].dt.month
 media_mes = haff.groupby("mes")[colunas].mean().round(2)
 media_mes.reset_index(inplace = True)
 print(f"\n{green}media_mes\n{reset}{media_mes}\n{green}media_mes.index\n{reset}{media_mes.index}")
-
 componente_sazonal = haff.merge(media_mes, left_on = "mes", how = "left", suffixes = ("", "_media"), right_index = True)
 sem_sazonal = pd.DataFrame(index = haff.index)
 meses  = componente_sazonal["mes"]
@@ -85,6 +95,9 @@ for c in colunas:
 		print(f"\n{green}{c}\n{tendencia.trend}{reset}\n")
 
 #sys.exit()
+haff.drop(columns = "mes", inplace = True)
+haff.set_index("data", inplace = True)
+print(f"\n{green}Dados Haff:\n{reset}{haff}\n")
 
 # Variabilidade
 ##### Correlação
