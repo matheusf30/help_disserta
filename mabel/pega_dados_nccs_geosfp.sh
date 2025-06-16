@@ -67,7 +67,7 @@ download_co2() {
         TAMANHO_RECORTADO_MB=$((TAMANHO_RECORTADO / 1000000))
         echo -e "\n${cyan}Tamanho do Arquivo: ${reset}${TAMANHO_RECORTADO_MB}MB"
 
-        if [[ $TAMANHO_RECORTADO_MB -eq 67 ]]; then
+        if [[ $TAMANHO_RECORTADO_MB -ge 65 && $TAMANHO_RECORTADO_MB -le 67 ]]; then
             echo -e "${cyan}Arquivo existente: ${reset}$CAMINHO_ARQUIVO_AS"
             return
         else
@@ -88,7 +88,7 @@ cdo_sel_AS() {
     local DIA=$3
     local ZULU=$4
 
-    CAMINHO_DADOS="/dados3/operacao/geos_fp/$ANO/$MES/$DIA/"
+    CAMINHO_DADOS="/home/meteoro/DADOS/dados/operacao/geos_fp/$ANO/$MES/$DIA/"
     NOME_ARQUIVO="geos.chm.${ANO}${MES}${DIA}${ZULU}.nc4"
     CAMINHO_ARQUIVO="${CAMINHO_DADOS}${NOME_ARQUIVO}"
     CAMINHO_ARQUIVO_AS="${CAMINHO_DADOS}AS_geos.chm.${ANO}${MES}${DIA}${ZULU}.nc4"
