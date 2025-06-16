@@ -1,3 +1,4 @@
+#!/bin/bash
 ###################################################
 ## Arquivo adaptado para baixar dados do         ##
 ## NASA Center for Climate Simulation            ##
@@ -7,7 +8,6 @@
 ##               e Everton Weber Galliani        ##
 ## Data: 10/06/2025                              ##
 ###################################################
-#!/bin/bash
 
 # Configuração de cores para saída no terminal
 bold="\033[1m"
