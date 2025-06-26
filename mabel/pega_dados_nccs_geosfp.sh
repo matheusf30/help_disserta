@@ -3,6 +3,7 @@
 ## Arquivo adaptado para baixar dados do         ##
 ## NASA Center for Climate Simulation            ##
 ## High Performance Computing for Science        ##
+## geos_fp >> FP (Forward Processing)            ##
 ## Dados: AIRDENS, CO, CO2, DELP, PS, TAITIME    ##
 ## Adaptado por: Matheus Ferreira de Souza       ##
 ##               e Everton Weber Galliani        ##

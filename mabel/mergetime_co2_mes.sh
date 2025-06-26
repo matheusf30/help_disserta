@@ -38,7 +38,7 @@ mkdir -p ${path_out}
 mkdir -p ${path_cli}
 #
 ########################################################
-# Configuração de cores para saída no terminal
+# Configuração de cores para saída no terminal         #
 ########################################################
 #
 bold="\033[1m"

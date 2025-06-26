@@ -3,13 +3,14 @@
 ## Arquivo adaptado para juntar dados do                           ##
 ## NASA Center for Climate Simulation                              ##
 ## High Performance Computing for Science                          ##
+## geos_fp >> FP (Forward Processing)                              ##
 ## Dados: AIRDENS, CO, CO2, DELP, PS, TAITIME                      ##
 ## Demanda: Mabel Simm Milan Bueno                                 ##
 ##                                                                 ##
 ## Como executar:					                               ## 
-## ./mergetime_co2_ano.sh <anoi> <anof>     
+## ./mergetime_co2.sh <anoi> <anof>                                ##
 ##                                                                 ##
-##   		 Autor: Matheus Ferreira de Souza    - IFSC            ## 
+##   		 Autor: Mário Francisco Leal de Quadro - IFSC          ## 
 ##           Adaptado por: Matheus Ferreira de Souza               ##
 ##    		 Data: 26/06/2025                                      ##
 #####################################################################
