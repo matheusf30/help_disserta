@@ -44,7 +44,7 @@ ano_atual = str(datetime.today().year)
 hoje = datetime.today().strftime("%Y-%m-%d")
 _ANOS = list(range(2014, 2026, 1))#list(range(2014, 2025, 1))
 _MESES = [f"{m:02d}" for m in range(1, 13, 1)]
-_DIAS = [f"{d:02d}" for d in range(1, 32, 1)]
+_DIAS = [f"{d:02d}" for d in range(13, 32, 1)]
 _ZULUS = [f"{z:02d}" for z in range(0, 24, 3)]
 '''
 _ANOS = sorted(_ANOS, reverse = True)
@@ -57,9 +57,9 @@ print(f"""
 {green}\nDIAS: {reset}{_DIAS}
 {green}\nHORAS: {reset}{_ZULUS}\n""")
 
-_ANO = 2014
-_MES = 12
-_DIA = 30
+_ANO = 2022
+_MES = "04"
+_DIA = "05"
 _ZULU = "00"
 
 #sys.exit()
@@ -78,7 +78,7 @@ def download_co2():
 	arquivo = f"GEOS.fp.asm.inst3_3d_chm_Nv.{_ANO}{_MES}{_DIA}_{_ZULU}00.V01.nc4"
 	url_nccs = f"{url_nasa}{filtro_crono}{arquivo}"
 
-	caminho_dados = f"/dados3/operacao/geos_fp/{_ANO}/{_MES}/{_DIA}/"
+	caminho_dados = f"/dados3/operacao/geos_fp/{_ANO}/{_MES}/{_DIA}/novo/"
 	nome_arquivo = f"geos.chm.{_ANO}{_MES}{_DIA}{_ZULU}.nc4"
 	caminho_arquivo = f"{caminho_dados}{nome_arquivo}"
 	caminho_arquivo_AS = f"{caminho_dados}AS_geos.chm.{_ANO}{_MES}{_DIA}{_ZULU}.nc4"
@@ -149,7 +149,7 @@ def download_co2():
 			print(f"\n{red}RequestException:\n\n{e}\n\n{url_nccs}\n{reset}")
 
 def cdo_mergetime():
-	caminho_dados = f"/dados3/operacao/geos_fp/{_ANO}/{_MES}/{_DIA}/"
+	caminho_dados = f"/dados3/operacao/geos_fp/{_ANO}/{_MES}/{_DIA}/novo/"
 	nome_arquivo = f"geos.chm.{_ANO}{_MES}{_DIA}{_ZULU}.nc4"
 	caminho_arquivo = f"{caminho_dados}{nome_arquivo}"
 	entrada = glob.glob(f"{caminho_dados}geos.chm.201412*.nc4")
@@ -157,7 +157,7 @@ def cdo_mergetime():
 	#os.remove(entrada)
 
 def cdo_sel_AS():
-	caminho_dados = f"/dados3/operacao/geos_fp/{_ANO}/{_MES}/{_DIA}/"
+	caminho_dados = f"/dados3/operacao/geos_fp/{_ANO}/{_MES}/{_DIA}/novo/"
 	nome_arquivo = f"geos.chm.{_ANO}{_MES}{_DIA}{_ZULU}.nc4"
 	caminho_arquivo = f"{caminho_dados}{nome_arquivo}"
 	caminho_arquivo_AS = f"{caminho_dados}AS_geos.chm.{_ANO}{_MES}{_DIA}{_ZULU}.nc4"
@@ -176,7 +176,11 @@ def cdo_sel_AS():
 		print(f"{red}NÃO HÁ ARQUIVOS PARA FAZER SELEÇÃO DE ÁREA:\n{caminho_arquivo}\n{reset}")
 
 #################################################################################
-
+#for _DIA in _DIAS:
+for _ZULU in _ZULUS:
+	download_co2()
+	cdo_sel_AS()
+sys.exit()
 #### Automatizando totais de arquivos do dia em diferentes horários #############
 for _ANO in _ANOS:
 	for _MES in _MESES:
