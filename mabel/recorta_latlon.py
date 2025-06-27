@@ -34,8 +34,8 @@ print(f"""
 {green}\nDIAS: {reset}{_DIAS}
 {green}\nHORAS: {reset}{_ZULUS}\n""")
 
-_ANO = 2022
-_MES = "04"
+_ANO = 2014
+_MES = "08"
 _DIA = "05"
 _ZULU = "00"
 _DIAS = [f"{d:02d}" for d in range(6, 32, 1)]
@@ -67,8 +67,8 @@ def cdo_sel_AS():
 		print(f"{red}NÃO HÁ ARQUIVOS PARA FAZER SELEÇÃO DE ÁREA:\n{caminho_arquivo_AS}\n{reset}")
 
 ##### Execuções ####################################################################
-#for _DIA in _DIAS:
-_ZULUS = [18, 21] # 2022/04/05
+for _DIA in _DIAS:
+#_ZULUS = [18, 21] # 2022/04/05 # > 2022/04/06
 for _ZULU in _ZULUS:
 	cdo_sel_AS()
 """
