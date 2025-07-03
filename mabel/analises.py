@@ -11,7 +11,7 @@
 
 ##### Bibliotecas correlatas ####################################################
 #from bs4 import BeautifulSoup
-#import pandas as pd
+import pandas as pd
 #import schedule
 import os, sys, glob
 import time
@@ -43,7 +43,7 @@ nome_arquivo = "geos.chm.co2.201403_202412.nc4" #sys.argv[1]
 caminho_arquivo = f"{caminho_dados}{nome_arquivo}"
 
 ##### FUNÇÕES ####################################################################
-def avisos(entrada):
+def avisos_sinfon(entrada):
 	print(f"\n{green} ARQUIVO UTILIZADO INTEGRALMENTE:\n{cyan}{entrada}{reset}\n")
 	tempo_inicio = time.time()
 	summary = cdo.sinfon(input = entrada)
@@ -75,45 +75,122 @@ def clima_mes(entrada, saida):
 def cdo_mergetime(entrada, saida):
 	cdo.mergetime(input = entrada, output = saida)
 
-def cdo_sel_AS():
+def cdo_sel_AS(entrada):
 	lat_max = 15
 	lat_min = -60
 	lon_max = -30
 	lon_min = -90
 	try:
 		cdo.sellonlatbox(lon_min, lon_max, lat_min, lat_max,
-					input = caminho_arquivo,
-					output = caminho_arquivo_AS)
-		print(f"{cyan}América do Sul\n{green}Seleção realizada com sucesso:\n{caminho_arquivo_AS}\n{reset}")
+					input = f"caminho_dados{entrada}",
+					output = f"caminho_dados{entrada}_AS")
+		print(f"{cyan}América do Sul\n{green}Seleção realizada com sucesso:\n{caminho_dados}{entrada}_AS\n{reset}")
 		os.remove(caminho_arquivo)
-		print(f"{red}Remoção realizada com sucesso:\n{caminho_arquivo}\n{reset}")
+		print(f"{red}Remoção realizada com sucesso:\n{caminho_dados}{entrada}\n{reset}")
 	except:
-		print(f"{red}NÃO HÁ ARQUIVOS PARA FAZER SELEÇÃO DE ÁREA:\n{caminho_arquivo}\n{reset}")
+		print(f"{red}NÃO HÁ ARQUIVOS PARA FAZER SELEÇÃO DE ÁREA:\n{caminho_dados}{entrada}\n{reset}")
 
 def abrindo_nc(entrada):
 	tempo_inicio = time.time()
 	entrada = xr.open_dataset(entrada)
-	print(entrada)
+	print(f"\n{green}ARQUIVO DE ENTRADA:\n{reset}{entrada}")
 	tempo_final = time.time()
 	tempo_processo = tempo_final - tempo_inicio
 	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
 	return entrada
 
-def plot_temporal(entrada, str_var):
+def tratando_nan(entrada, str_var):
 	tempo_inicio = time.time()
-	entrada = entrada[str_var].plot.line(x = "time")
+	print(f"\n{green}ARQUIVO DE ENTRADA:\n{reset}{entrada}")
+	metodo = input(f"{magenta}Escolha uma forma de tratamento de NaN\n'i' - interpolar\n'm' - preencher com média\n'd' - deletar NaN\n...\n{reset}")
+	if metodo == "i":
+		entrada = entrada[str_var].interpolate_na(method = "linear")
+		print(f"\n{green}Tratamento de NaN por Interpolação:\n{reset}{entrada}")	
+	elif metodo == "m":
+		media = entrada[str_var].mean(skipna = True)
+		entrada = entrada[str_var].fillna(media)
+		print(f"\n{green}Tratamento de NaN por Preenchimento de Média:\n{reset}{entrada}")	
+	elif metodo == "d":
+		entrada = entrada[str_var].dropna()
+		print(f"\n{green}Tratamento de NaN por Deleção:\n{reset}{entrada}")	
+	else:
+		print(f"\n{red}Escolha algum método de tratamento válido\n{reset}")		
+	entrada = xr.open_dataset(entrada)
 	tempo_final = time.time()
 	tempo_processo = tempo_final - tempo_inicio
 	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
+	return entrada
+
+def plot_temporal(entrada, str_var, latitude, longitude, nivel = None, escala_temporal = None):
+	tempo_inicio = time.time()
+	ponto = entrada[str_var].sel(lat = latitude, lon = longitude, method = "nearest")
+	ponto = ponto / 1000000
+	if nivel != None:
+		if isinstance(nivel, str):
+			ponto_medio = ponto.mean(dim = "lev", skipna = True)
+		elif isinstance(nivel, int):
+			ponto_medio = ponto.sel(lev = nivel, method = "nearest")
+	else:
+		print("VAI DAR ERRO")	
+	plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
+	ponto_medio.plot.line(x = "time", label = str_var, color = "red")
+	plt.gca().patch.set_facecolor("honeydew")
+	if isinstance(nivel, str):
+		plt.title(f"Série de {str_var}, média dos {len(entrada.lev)} níveis no ponto de latitude ({latitude}) e longitude ({longitude})")
+	elif isinstance(nivel, int):
+		plt.title(f"Série de {str_var}, no ponto de altitude ({nivel}), latitude ({latitude}) e longitude ({longitude})")
+	plt.grid(True)
+	plt.legend()
+	if escala_temporal == None:
+		plt.xlabel("Tempo")
+	else:
+		plt.xlabel(f"Tempo ({escala_temporal})")
+	plt.ylabel(str_var)
+	plt.tight_layout()
+	plt.show()
+	tempo_final = time.time()
+	tempo_processo = tempo_final - tempo_inicio
+	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
+	return ponto_medio
+
+def salvar_csv(caminho, entrada, nome_arquivo):
+	_SALVAR = input(f"\n{magenta}Deseja salvar a série temporal em arquivo.csv? Se sim, digite 's': \n{reset}")
+	if _SALVAR == "s":
+		entrada_csv = entrada.to_dataframe().reset_index()
+		entrada_csv.to_csv(f"{caminho_dados}{nome_arquivo}", index = False)
+		print(f"\n{green}SALVANDO:\n{reset}{entrada_csv}\n")
+	else:
+		print(f"\n{green}Arquivo (.csv) NÃO salvo:\n{reset}{entrada}")	
+	
 
 ##### EXECUÇÕES ##################################################################
 #clima_dia = clima_dia(caminho_arquivo, f"{caminho_dados}climatologia_diaria.nc4")
 #clima_mes = clima_mes(caminho_arquivo, f"{caminho_dados}climatologia_mensal.nc4")
 #clima_dia =  abrindo_nc(clima_dia)
+"""
+# Série Histórica (geos.chm.co2.201403_202412.nc4)
+avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
+serie_temporal =  abrindo_nc(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
+print(f"\n{green}Série Temporal:\n{reset}{serie_temporal}")
+plot_temporal(serie_temporal, "CO2", -27, -48, 1, "serie")
+"""
+avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
 
-avisos(f"{caminho_dados}climatologia_diaria.nc4")
+# Climatologia Diária
+avisos_sinfon(f"{caminho_dados}climatologia_diaria.nc4")
 clima_dia =  abrindo_nc(f"{caminho_dados}climatologia_diaria.nc4")
-plot_temporal(clima_dia, "CO2")
+print(f"\n{green}Climatologia Diária:\n{reset}{clima_dia}")
+ponto_medio_dia = plot_temporal(clima_dia, "CO2", -27, -48, 1, "dias") #lev = "SIM"
+#salvar_csv(f"{caminho_dados}", ponto_medio_dia, "climatologia_diaria.csv") 
+
+# Climatologia Mensal
+avisos_sinfon(f"{caminho_dados}climatologia_mensal.nc4")
+clima_mes =  abrindo_nc(f"{caminho_dados}climatologia_mensal.nc4")
+print(f"\n{green}Climatologia Mensal:\n{reset}{clima_mes}")
+ponto_medio_mes = plot_temporal(clima_mes, "CO2", -27, -48, 1, "meses")
+#salvar_csv(f"{caminho_dados}", ponto_medio_mes, "climatologia_mensal.csv") 
+
+#sys.exit()
 #clima_dia.plot()
 
 
