@@ -12,6 +12,7 @@
 ##### Bibliotecas correlatas ####################################################
 #from bs4 import BeautifulSoup
 import pandas as pd
+import numpy as np
 #import schedule
 import os, sys, glob
 import time
@@ -167,13 +168,25 @@ def salvar_csv(caminho, entrada, nome_arquivo):
 #clima_dia = clima_dia(caminho_arquivo, f"{caminho_dados}climatologia_diaria.nc4")
 #clima_mes = clima_mes(caminho_arquivo, f"{caminho_dados}climatologia_mensal.nc4")
 #clima_dia =  abrindo_nc(clima_dia)
-"""
+
 # Série Histórica (geos.chm.co2.201403_202412.nc4)
 avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
 serie_temporal =  abrindo_nc(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
+
+remover_tempos = [ "2014-08-10 00:00:00", "2016-08-14 21:00:00",
+					"2018-12-21 00:00:00", "2018-12-21 03:00:00"]
+remover_tempos = np.array(remover_tempos, dtype = "datetime64")
+serie_temporal = serie_temporal.sel(time = ~serie_temporal.time.isin(remover_tempos))
+"""
 print(f"\n{green}Série Temporal:\n{reset}{serie_temporal}")
 plot_temporal(serie_temporal, "CO2", -27, -48, 1, "serie")
+
+
+mudanca_metodologia = np.datetime64("2017-01-25 00:00:00")
+serie_temporal = serie_temporal.sel(time = serie_temporal.time >= mudanca_metodologia)
 """
+print(f"\n{green}Série Temporal (após mudança de metodologia):\n{reset}{serie_temporal}")
+plot_temporal(serie_temporal, "CO2", -27, -48, 1, "serie (após mudança de metodologia)")
 avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
 
 # Climatologia Diária
