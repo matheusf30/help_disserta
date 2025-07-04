@@ -96,12 +96,16 @@ for c in colunas:
 
 #sys.exit()
 haff.drop(columns = "mes", inplace = True)
+haff["EL"] = haff["ENOS"].where(haff["ENOS"] >= 0.5)
+haff["LA"] = haff["ENOS"].where(haff["ENOS"] <= -0.5)
 haff.set_index("data", inplace = True)
 print(f"\n{green}Dados Haff:\n{reset}{haff}\n")
+#sys.exit()
 
 # Variabilidade
 ##### Correlação
 ### Análise (série Temporal Mensal)
+colunas = haff.columns
 variaveis = haff[colunas]
 _METODOS = ["pearson", "spearman"]
 for _METODO in _METODOS:
