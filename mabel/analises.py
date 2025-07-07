@@ -342,7 +342,7 @@ print(f"\n{green}Alteração (média dos 72 níveis):\n{reset}{serie_temporal_al
 serie_temporal_corrigidamedia  = xr.concat([serie_temporal_alteradamedia, serie_temporal_mudadamedia], dim = "time")
 serie_temporal_corrigidamedia["CO2"] = serie_temporal_corrigidamedia["CO2"] * 1000000
 print(f"\n{green}Série Temporal (após mudança de metodologia com correção, média de 72 níveis):\n{reset}{serie_temporal_corrigidamedia}")
-salvar_nc4(caminho_dados, serie_temporal_corrigidamedia, "serie_temporal_lvmedia_corrigida.nc4")
+#salvar_nc4(caminho_dados, serie_temporal_corrigidamedia, "serie_temporal_lvmedia_corrigida.nc4")
 plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
 serie_temporal_corrigidamedia["CO2"].plot.line(x = "time", label = "CO2", color = "red")
 plt.gca().patch.set_facecolor("honeydew")
