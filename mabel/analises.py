@@ -285,6 +285,7 @@ serie_temporal_alterada = serie_temporal.sel(time = serie_temporal.time <= mudan
 print(f"\n{green}Alteração (nível 1):\n{reset}{serie_temporal_alterada}")
 # 8486 * 72 * 157 * 154 * 4 bytes ≈ 55 GB
 serie_temporal_corrigida  = xr.concat([serie_temporal_alterada, serie_temporal_mudada_1], dim = "time")
+serie_temporal_corrigida["CO2"] = serie_temporal_corrigida["CO2"] * 1000000
 print(f"\n{green}Série Temporal (após mudança de metodologia com correção):\n{reset}{serie_temporal_corrigida}")
 #plot_temporal(serie_temporal_corrigida, "CO2", -27, -48, "média", "serie (com correção de metodologia)")
 #salvar_csv(caminho_resultados, serie_temporal_corrigida, "serie_temporal_lvmedia_corrigida.csv")
@@ -295,7 +296,7 @@ plt.title(f"Série de CO2, no ponto de altitude (1), latitude (-27) e longitude 
 plt.grid(True)
 plt.legend()
 plt.xlabel("Tempo (dias)")
-plt.ylabel("CO2")
+plt.ylabel("CO2 (ppm)")
 plt.tight_layout()
 plt.show()
 #salvar_csv(caminho_resultados, serie_temporal_corrigida, "serie_temporal_lv1_corrigida.csv")
@@ -309,23 +310,25 @@ angulo, intercepto, r, p_value, desvio_padrao = linregress(tempo_num, co2_valor)
 regressao = angulo * tempo_num + intercepto
 plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
 plt.plot(tempo, co2_valor, label = "CO2", color = "red")
-plt.plot(tempo, regressao, label = f"Regressão Linear (R² = {r**2:.3f}, p = {p_value}, desvio padrão = {desvio_padrao})", color = "blue", linestyle = "--")
+plt.plot(tempo, regressao, label = f"Regressão Linear [ y = {angulo} * X + {intercepto}]\n(R² = {r**2:.3f}, p = {p_value}, desvio padrão = {desvio_padrao})", color = "blue", linestyle = "--")
 plt.gca().patch.set_facecolor("honeydew")
 plt.title(f"Série de CO2 e Regressão Linear, no ponto de altitude (1), latitude (-27) e longitude (-48)")
 plt.grid(True)
 plt.legend()
 plt.xlabel("Tempo (dias)")
-plt.ylabel("CO2")
+plt.ylabel("CO2 (ppm)")
 plt.tight_layout()
 plt.show()
 ###########################################################################
 ####################################################################
 # CORRIGINDO MUDANÇA DE METODOLOGIA (VALORES DESLOCADOS PARA CIMA) # lv = média
 ####################################################################
-serie_temporal_pontomedia = serie_temporal.sel(lat = -27, lon = -48, method = "nearest").mean(dim = "lev", skipna = True)
-serie_temporal_mudadamedia = serie_temporal_pontomedia.sel(time = serie_temporal_pontomedia.time >= mudanca_metodologia)
-
+serie_temporal_ponto = serie_temporal.sel(lat = -27, lon = -48, method = "nearest")
+serie_temporal_pontomedia = serie_temporal_ponto.mean(dim = "lev", skipna = True)
+#serie_temporal_pontomedia = serie_temporal.sel(lat = -27, lon = -48, method = "nearest").mean(dim = "lev", skipna = True)
 print(f"\n{green}Série Temporal (lat = -27, lon = -48, após mudança e níveis médios):\n{reset}{serie_temporal_pontomedia}")
+serie_temporal_mudadamedia = serie_temporal_pontomedia.sel(time = serie_temporal_pontomedia.time >= mudanca_metodologia)
+print(f"\n{green}Série Temporal (lat = -27, lon = -48, após mudança e níveis médios):\n{reset}{serie_temporal_mudadamedia}")
 mudanca_metodologia = np.datetime64("2017-01-24 00:00:00")
 antes = np.datetime64("2017-01-23 00:00:00")
 depois = np.datetime64("2017-01-25 00:00:00")
@@ -333,11 +336,12 @@ antes_media = serie_temporal_pontomedia["CO2"].sel(time = antes)
 depois_media = serie_temporal_pontomedia["CO2"].sel(time = depois)
 diferenca_media = depois_media - antes_media
 print(f"\n{green}Diferença (média dos 72 níveis):\n{reset}{diferenca_media}")
-serie_temporal_alteradamedia = serie_temporal.sel(time = serie_temporal_pontomedia.time <= mudanca_metodologia) + diferenca_media
-print(f"\n{green}Alteração (nível 1):\n{reset}{serie_temporal_alteradamedia}")
+serie_temporal_alteradamedia = serie_temporal_pontomedia.sel(time = serie_temporal_pontomedia.time <= mudanca_metodologia) + diferenca_media
+print(f"\n{green}Alteração (média dos 72 níveis):\n{reset}{serie_temporal_alteradamedia}")
 # 8486 * 72 * 157 * 154 * 4 bytes ≈ 55 GB
 serie_temporal_corrigidamedia  = xr.concat([serie_temporal_alteradamedia, serie_temporal_mudadamedia], dim = "time")
-print(f"\n{green}Série Temporal (após mudança de metodologia com correção):\n{reset}{serie_temporal_corrigidamedia}")
+serie_temporal_corrigidamedia["CO2"] = serie_temporal_corrigidamedia["CO2"] * 1000000
+print(f"\n{green}Série Temporal (após mudança de metodologia com correção, média de 72 níveis):\n{reset}{serie_temporal_corrigidamedia}")
 salvar_nc4(caminho_dados, serie_temporal_corrigidamedia, "serie_temporal_lvmedia_corrigida.nc4")
 plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
 serie_temporal_corrigidamedia["CO2"].plot.line(x = "time", label = "CO2", color = "red")
@@ -346,12 +350,12 @@ plt.title(f"Série de CO2, no ponto de latitude (-27), longitude (-48) e média 
 plt.grid(True)
 plt.legend()
 plt.xlabel("Tempo (dias)")
-plt.ylabel("CO2")
+plt.ylabel("CO2 (ppm)")
 plt.tight_layout()
 plt.show()
 #salvar_csv(caminho_resultados, serie_temporal_corrigida, "serie_temporal_lv1_corrigida.csv")
 ########################### AJUSTANDO REGRESSÃO LINEAR
-co2 = serie_temporal_corrigida["CO2"]
+co2 = serie_temporal_corrigidamedia["CO2"]
 tempo = co2["time"].values
 tempo_num = mdates.date2num(tempo)
 co2_valor = co2.values
@@ -360,13 +364,13 @@ angulo, intercepto, r, p_value, desvio_padrao = linregress(tempo_num, co2_valor)
 regressao = angulo * tempo_num + intercepto
 plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
 plt.plot(tempo, co2_valor, label = "CO2", color = "red")
-plt.plot(tempo, regressao, label = f"Regressão Linear (R² = {r**2:.3f}, p = {p_value}, desvio padrão = {desvio_padrao})", color = "blue", linestyle = "--")
+plt.plot(tempo, regressao, label = f"Regressão Linear [ y = {angulo} * X + {intercepto}]\n(R² = {r**2:.3f}, p = {p_value}, desvio padrão = {desvio_padrao})", color = "blue", linestyle = "--")
 plt.gca().patch.set_facecolor("honeydew")
 plt.title(f"Série de CO2 e Regressão Linear, no ponto de latitude (-27), longitude (-48) e média das 72 altitudes")
 plt.grid(True)
 plt.legend()
 plt.xlabel("Tempo (dias)")
-plt.ylabel("CO2")
+plt.ylabel("CO2 (ppm)")
 plt.tight_layout()
 plt.show()
 ###########################################################################
