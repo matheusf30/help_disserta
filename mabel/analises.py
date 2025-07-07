@@ -13,6 +13,9 @@
 #from bs4 import BeautifulSoup
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from scipy.stats import linregress
 #import schedule
 import os, sys, glob
 import time
@@ -133,7 +136,7 @@ def plot_temporal(entrada, str_var, latitude, longitude, nivel = None, escala_te
 		elif isinstance(nivel, int):
 			ponto_medio = ponto.sel(lev = nivel, method = "nearest")
 	else:
-		print("VAI DAR ERRO")	
+		print("VAI DAR ERRO OU NÃO")	
 	plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
 	ponto_medio.plot.line(x = "time", label = str_var, color = "red")
 	plt.gca().patch.set_facecolor("honeydew")
@@ -175,19 +178,25 @@ def salvar_csv(caminho, entrada, nome_arquivo):
 avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
 serie_temporal =  abrindo_nc(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
 
-remover_tempos = [ "2014-08-10 00:00:00", "2016-08-14 21:00:00",
+remover_tempos = ["2014-08-10 00:00:00", "2016-08-14 21:00:00",
 					"2018-12-21 00:00:00", "2018-12-21 03:00:00"]
 remover_tempos = np.array(remover_tempos, dtype = "datetime64")
 serie_temporal = serie_temporal.sel(time = ~serie_temporal.time.isin(remover_tempos))
-
+"""
 print(f"\n{green}Série Temporal:\n{reset}{serie_temporal}")
 plot_temporal(serie_temporal, "CO2", -27, -48, 1, "serie")
 salvar_csv(caminho_resultados, serie_temporal, "serie_temporal_lv1.csv")
 plot_temporal(serie_temporal, "CO2", -27, -48, "média", "serie")
 salvar_csv(caminho_resultados, serie_temporal, "serie_temporal_lvmedia.csv")
+"""
 mudanca_metodologia = np.datetime64("2017-01-25 00:00:00")
 serie_temporal_mudada = serie_temporal.sel(time = serie_temporal.time >= mudanca_metodologia)
+serie_temporal_mudada_1 = serie_temporal.sel(time = serie_temporal.time >= mudanca_metodologia, lev = 1, lat = -27, lon = -48, method = "nearest")
+serie_temporal_pontomedia = serie_temporal.sel(lat = -27, lon = -48, method = "nearest").mean(dim = "lev", skipna = True)
+serie_temporal_mudadamedia = serie_temporal.sel(time = serie_temporal.time >= mudanca_metodologia, lat = -27, lon = -48, method = "nearest").mean(dim = "lev", skipna = True)
 
+print(f"\n{green}Série Temporal (lat = -27, lon = -48, após mudança e níveis médios):\n{reset}{serie_temporal_pontomedia}")
+"""
 print(f"\n{green}Série Temporal (após mudança de metodologia):\n{reset}{serie_temporal_mudada}")
 plot_temporal(serie_temporal_mudada, "CO2", -27, -48, 1, "serie (após mudança de metodologia)")
 salvar_csv(caminho_resultados, serie_temporal, "serie_temporal_lv1_mudametodologia.csv")
@@ -195,9 +204,70 @@ avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
 
 print(f"\n{green}Série Temporal (após mudança de metodologia):\n{reset}{serie_temporal_mudada}")
 plot_temporal(serie_temporal_mudada, "CO2", -27, -48, "média", "serie (após mudança de metodologia)")
-salvar_csv(caminho_resultados, serie_temporal, "serie_temporal_lv1_mudametodologia.csv")
-avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
+salvar_csv(caminho_resultados, serie_temporal, "serie_temporal_lvmedia_mudametodologia.csv")
+"""
+#mudanca_metodologia = np.datetime64("2017-01-25 00:00:00")
+####################################################################
+# CORRIGINDO MUDANÇA DE METODOLOGIA (VALORES DESLOCADOS PARA CIMA) # lv = 1
+####################################################################
+mudanca_metodologia = np.datetime64("2017-01-24 00:00:00")
+antes = np.datetime64("2017-01-23 00:00:00")
+depois = np.datetime64("2017-01-25 00:00:00")
+antes_1 = serie_temporal["CO2"].sel(time = antes, lev = 1, lat = -27, lon = -48, method = "nearest")
+depois_1 = serie_temporal["CO2"].sel(time = depois, lev = 1, lat = -27, lon = -48, method = "nearest")
+antes_media = serie_temporal_pontomedia["CO2"].sel(time = antes)
+depois_media = serie_temporal_pontomedia["CO2"].sel(time = depois)
+#antes_media = serie_temporal["CO2"].sel(time = antes, lat = -27, lon = -48, method = "nearest")
+#depois_media = serie_temporal["CO2"].sel(time = depois, lat = -27, lon = -48, method = "nearest")
+diferenca_1 = depois_1 - antes_1
+diferenca_media = depois_media - antes_media
+print(f"\n{green}Diferença (nível 1):\n{reset}{diferenca_1}")
+print(f"\n{green}Diferença (média dos 72 níveis):\n{reset}{diferenca_media}")
 
+serie_temporal_alterada = serie_temporal.sel(time = serie_temporal.time <= mudanca_metodologia, lev = 1, lat = -27, lon = -48, method = "nearest") + diferenca_1
+serie_temporal_alteradamedia = serie_temporal_pontomedia.sel(time = serie_temporal_pontomedia.time <= mudanca_metodologia) + diferenca_1
+#df_serie_temporal_alterada = df_serie_temporal[df_serie_temporal["time"] <= mudanca_metodologia)] + diferenca_1
+print(f"\n{green}Alteração (nível 1):\n{reset}{serie_temporal_alterada}")
+print(f"\n{green}Alteração (nível 1):\n{reset}{serie_temporal_alteradamedia}")
+# 8486 * 72 * 157 * 154 * 4 bytes ≈ 55 GB
+serie_temporal_corrigida  = xr.concat([serie_temporal_alterada, serie_temporal_mudada_1], dim = "time")
+serie_temporal_corrigidamedia  = xr.concat([serie_temporal_alteradamedia, serie_temporal_mudadamedia], dim = "time")
+print(f"\n{green}Série Temporal (após mudança de metodologia com correção):\n{reset}{serie_temporal_corrigida}")
+print(f"\n{green}Série Temporal (após mudança de metodologia com correção):\n{reset}{serie_temporal_corrigidamedia}")
+#plot_temporal(serie_temporal_corrigida, "CO2", -27, -48, "média", "serie (com correção de metodologia)")
+#salvar_csv(caminho_resultados, serie_temporal_corrigida, "serie_temporal_lvmedia_corrigida.csv")
+plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
+serie_temporal_corrigida["CO2"].plot.line(x = "time", label = "CO2", color = "red")
+plt.gca().patch.set_facecolor("honeydew")
+plt.title(f"Série de CO2, no ponto de altitude (1), latitude (-27) e longitude (-48)")
+plt.grid(True)
+plt.legend()
+plt.xlabel("Tempo (dias)")
+plt.ylabel("CO2")
+plt.tight_layout()
+plt.show()
+#salvar_csv(caminho_resultados, serie_temporal_corrigida, "serie_temporal_lv1_corrigida.csv")
+########################### AJUSTANDO REGRESSÃO LINEAR
+co2 = serie_temporal_corrigida["CO2"]
+tempo = co2["time"].values
+tempo_num = mdates.date2num(tempo)
+co2_valor = co2.values
+angulo, intercepto = np.polyfit(tempo_num, co2_valor, deg=1)
+regressao = angulo * tempo_num + intercepto
+plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
+plt.plot(tempo, co2_valor, label = "CO2", color = "red")
+plt.plot(tempo, regressao, label = "Regressão Linear", color = "blue", linestyle = "--")
+plt.gca().patch.set_facecolor("honeydew")
+plt.title(f"Série de CO2 e Regressão Linear, no ponto de altitude (1), latitude (-27) e longitude (-48)")
+plt.grid(True)
+plt.legend()
+plt.xlabel("Tempo (dias)")
+plt.ylabel("CO2")
+plt.tight_layout()
+plt.show()
+###########################################################################
+
+sys.exit()
 # Climatologia Diária
 avisos_sinfon(f"{caminho_dados}climatologia_diaria.nc4")
 clima_dia =  abrindo_nc(f"{caminho_dados}climatologia_diaria.nc4")
