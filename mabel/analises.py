@@ -42,6 +42,7 @@ reset = "\033[0m"
 caminho_dados = "/dados4/operacao/geos_fp/co2/"
 nome_arquivo = "geos.chm.co2.201403_202412.nc4" #sys.argv[1]
 caminho_arquivo = f"{caminho_dados}{nome_arquivo}"
+caminho_resultados = "/home/sifapsc/scripts/matheus/help_disserta/mabel/resultados/matheus"
 
 ##### FUNÇÕES ####################################################################
 def avisos_sinfon(entrada):
@@ -161,7 +162,8 @@ def salvar_csv(caminho, entrada, nome_arquivo):
 		entrada_csv.to_csv(f"{caminho_dados}{nome_arquivo}", index = False)
 		print(f"\n{green}SALVANDO:\n{reset}{entrada_csv}\n")
 	else:
-		print(f"\n{green}Arquivo (.csv) NÃO salvo:\n{reset}{entrada}")	
+		print(f"\n{green}Arquivo (.csv) NÃO salvo:\n{reset}{entrada}")
+	return entrada_csv
 	
 
 ##### EXECUÇÕES ##################################################################
@@ -177,20 +179,23 @@ remover_tempos = [ "2014-08-10 00:00:00", "2016-08-14 21:00:00",
 					"2018-12-21 00:00:00", "2018-12-21 03:00:00"]
 remover_tempos = np.array(remover_tempos, dtype = "datetime64")
 serie_temporal = serie_temporal.sel(time = ~serie_temporal.time.isin(remover_tempos))
-"""
+
 print(f"\n{green}Série Temporal:\n{reset}{serie_temporal}")
 plot_temporal(serie_temporal, "CO2", -27, -48, 1, "serie")
+salvar_csv(caminho_resultados, serie_temporal, "serie_temporal_lv1.csv")
 plot_temporal(serie_temporal, "CO2", -27, -48, "média", "serie")
-"""
+salvar_csv(caminho_resultados, serie_temporal, "serie_temporal_lvmedia.csv")
 mudanca_metodologia = np.datetime64("2017-01-25 00:00:00")
 serie_temporal_mudada = serie_temporal.sel(time = serie_temporal.time >= mudanca_metodologia)
-"""
+
 print(f"\n{green}Série Temporal (após mudança de metodologia):\n{reset}{serie_temporal_mudada}")
 plot_temporal(serie_temporal_mudada, "CO2", -27, -48, 1, "serie (após mudança de metodologia)")
+salvar_csv(caminho_resultados, serie_temporal, "serie_temporal_lv1_mudametodologia.csv")
 avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
-"""
+
 print(f"\n{green}Série Temporal (após mudança de metodologia):\n{reset}{serie_temporal_mudada}")
 plot_temporal(serie_temporal_mudada, "CO2", -27, -48, "média", "serie (após mudança de metodologia)")
+salvar_csv(caminho_resultados, serie_temporal, "serie_temporal_lv1_mudametodologia.csv")
 avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
 
 # Climatologia Diária
@@ -198,15 +203,17 @@ avisos_sinfon(f"{caminho_dados}climatologia_diaria.nc4")
 clima_dia =  abrindo_nc(f"{caminho_dados}climatologia_diaria.nc4")
 print(f"\n{green}Climatologia Diária:\n{reset}{clima_dia}")
 ponto_medio_dia = plot_temporal(clima_dia, "CO2", -27, -48, 1, "dias") #lev = "SIM"
-#salvar_csv(f"{caminho_dados}", ponto_medio_dia, "climatologia_diaria.csv") 
-ponto_medio_dia = plot_temporal(clima_dia, "CO2", -27, -48, "média", "dias") 
+salvar_csv(f"{caminho_dados}", ponto_medio_dia, "climatologia_diaria_lv1.csv") 
+ponto_medio_dia = plot_temporal(clima_dia, "CO2", -27, -48, "média", "dias")
+salvar_csv(f"{caminho_dados}", ponto_medio_dia, "climatologia_diaria_lvmedia.csv") 
 # Climatologia Mensal
 avisos_sinfon(f"{caminho_dados}climatologia_mensal.nc4")
 clima_mes =  abrindo_nc(f"{caminho_dados}climatologia_mensal.nc4")
 print(f"\n{green}Climatologia Mensal:\n{reset}{clima_mes}")
 ponto_medio_mes = plot_temporal(clima_mes, "CO2", -27, -48, 1, "meses")
-#salvar_csv(f"{caminho_dados}", ponto_medio_mes, "climatologia_mensal.csv") 
+salvar_csv(f"{caminho_dados}", ponto_medio_mes, "climatologia_mensal_lv1.csv") 
 ponto_medio_mes = plot_temporal(clima_mes, "CO2", -27, -48, "média", "meses")
+salvar_csv(f"{caminho_dados}", ponto_medio_mes, "climatologia_mensal_lvmedia.csv") 
 #sys.exit()
 #clima_dia.plot()
 
