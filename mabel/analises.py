@@ -310,7 +310,7 @@ angulo, intercepto, r, p_value, desvio_padrao = linregress(tempo_num, co2_valor)
 regressao = angulo * tempo_num + intercepto
 plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
 plt.plot(tempo, co2_valor, label = "CO2", color = "red")
-plt.plot(tempo, regressao, label = f"Regressão Linear [ y = {angulo} * X + {intercepto}]\n(R² = {r**2:.3f}, p = {p_value}, desvio padrão = {desvio_padrao})", color = "blue", linestyle = "--")
+plt.plot(tempo, regressao, label = f"Regressão Linear [y = {angulo:.4f} * X + {intercepto:.2f}]\n(R² = {r**2:.3f}, p = {p_value})", color = "blue", linestyle = "--")
 plt.gca().patch.set_facecolor("honeydew")
 plt.title(f"Série de CO2 e Regressão Linear, no ponto de altitude (1), latitude (-27) e longitude (-48)")
 plt.grid(True)
@@ -365,7 +365,7 @@ angulo, intercepto, r, p_value, desvio_padrao = linregress(tempo_num, co2_valor)
 regressao = angulo * tempo_num + intercepto
 plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
 plt.plot(tempo, co2_valor, label = "CO2", color = "red")
-plt.plot(tempo, regressao, label = f"Regressão Linear [ y = {angulo} * X + {intercepto}]\n(R² = {r**2:.3f}, p = {p_value}, desvio padrão = {desvio_padrao})", color = "blue", linestyle = "--")
+plt.plot(tempo, regressao, label = f"Regressão Linear [y = {angulo:.4f} * X + {intercepto:.2f}]\n(R² = {r**2:.3f}, p = {p_value})", color = "blue", linestyle = "--") #, desvio padrão = {desvio_padrao}
 plt.gca().patch.set_facecolor("honeydew")
 plt.title(f"Série de CO2 e Regressão Linear, no ponto de latitude (-27), longitude (-48) e média das 72 altitudes")
 plt.grid(True)
