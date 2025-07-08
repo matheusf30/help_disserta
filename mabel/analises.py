@@ -171,7 +171,7 @@ def salvar_csv(caminho, entrada, nome_arquivo):
 def salvar_nc4(caminho, entrada, nome_arquivo):
 	_SALVAR = input(f"\n{magenta}Deseja salvar a série temporal em arquivo.nc4? Se sim, digite 's': \n{reset}")
 	if _SALVAR == "s":
-		entrada_nc4 = entrada.to_netcdf(format = "NETCDF4")
+		entrada_nc4 = entrada.to_netcdf(engine = "netcdf4", format = "NETCDF4")
 		entrada_nc4.to_csv(f"{caminho_dados}{nome_arquivo}", index = False)
 		print(f"\n{green}SALVANDO:\n{reset}{entrada_nc4}\n")
 	else:
@@ -288,7 +288,7 @@ serie_temporal_corrigida  = xr.concat([serie_temporal_alterada, serie_temporal_m
 serie_temporal_corrigida["CO2"] = serie_temporal_corrigida["CO2"] * 1000000
 print(f"\n{green}Série Temporal (após mudança de metodologia com correção):\n{reset}{serie_temporal_corrigida}")
 #plot_temporal(serie_temporal_corrigida, "CO2", -27, -48, "média", "serie (com correção de metodologia)")
-#salvar_csv(caminho_resultados, serie_temporal_corrigida, "serie_temporal_lvmedia_corrigida.csv")
+salvar_csv(caminho_resultados, serie_temporal_corrigida, "serie_temporal_lv1_corrigida.csv")
 plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
 serie_temporal_corrigida["CO2"].plot.line(x = "time", label = "CO2", color = "red")
 plt.gca().patch.set_facecolor("honeydew")
@@ -342,6 +342,7 @@ print(f"\n{green}Alteração (média dos 72 níveis):\n{reset}{serie_temporal_al
 serie_temporal_corrigidamedia  = xr.concat([serie_temporal_alteradamedia, serie_temporal_mudadamedia], dim = "time")
 serie_temporal_corrigidamedia["CO2"] = serie_temporal_corrigidamedia["CO2"] * 1000000
 print(f"\n{green}Série Temporal (após mudança de metodologia com correção, média de 72 níveis):\n{reset}{serie_temporal_corrigidamedia}")
+salvar_csv(caminho_dados, serie_temporal_corrigidamedia, "serie_temporal_lvmedia_corrigida.csv")
 #salvar_nc4(caminho_dados, serie_temporal_corrigidamedia, "serie_temporal_lvmedia_corrigida.nc4")
 plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
 serie_temporal_corrigidamedia["CO2"].plot.line(x = "time", label = "CO2", color = "red")
