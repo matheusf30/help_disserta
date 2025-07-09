@@ -58,7 +58,7 @@ def avisos_sinfon(entrada):
 	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
 
 def clima_dia(entrada, saida):
-	avisos(entrada)
+	avisos_sinfon(entrada)
 	tempo_inicio = time.time()
 	cdo.ydaymean(input = entrada, output = saida)
 	print(f"\n{green}ARQUIVO SALVO:\n{reset}{saida}")
@@ -68,7 +68,7 @@ def clima_dia(entrada, saida):
 	return saida
 
 def clima_mes(entrada, saida):
-	avisos(entrada)
+	avisos_sinfon(entrada)
 	tempo_inicio = time.time()
 	cdo.ymonmean(input = entrada, output = saida)
 	print(f"\n{green}ARQUIVO SALVO:\n{reset}{saida}")
@@ -78,7 +78,24 @@ def clima_mes(entrada, saida):
 	return saida
 
 def cdo_mergetime(entrada, saida):
+	avisos_sinfon(entrada)
+	tempo_inicio = time.time()
 	cdo.mergetime(input = entrada, output = saida)
+	print(f"\n{green}ARQUIVO SALVO:\n{reset}{saida}")
+	tempo_final = time.time()
+	tempo_processo = tempo_final - tempo_inicio
+	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
+	return saida
+
+def media_vertical(entrada, saida):
+	avisos_sinfon(entrada)
+	tempo_inicio = time.time()
+	cdo.vertmean(input = entrada, output = saida)
+	print(f"\n{green}ARQUIVO SALVO:\n{reset}{saida}")
+	tempo_final = time.time()
+	tempo_processo = tempo_final - tempo_inicio
+	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
+	return saida
 
 def cdo_sel_AS(entrada):
 	lat_max = 15
@@ -171,8 +188,7 @@ def salvar_csv(caminho, entrada, nome_arquivo):
 def salvar_nc4(caminho, entrada, nome_arquivo):
 	_SALVAR = input(f"\n{magenta}Deseja salvar a série temporal em arquivo.nc4? Se sim, digite 's': \n{reset}")
 	if _SALVAR == "s":
-		entrada_nc4 = entrada.to_netcdf(engine = "netcdf4", format = "NETCDF4")
-		entrada_nc4.to_csv(f"{caminho_dados}{nome_arquivo}", index = False)
+		entrada_nc4 = entrada.to_netcdf(f"{caminho_dados}{nome_arquivo}", engine = "netcdf4", format = "NETCDF4")
 		print(f"\n{green}SALVANDO:\n{reset}{entrada_nc4}\n")
 	else:
 		print(f"\n{green}Arquivo (.nc4) NÃO salvo:\n{reset}{entrada}")
@@ -183,15 +199,17 @@ def salvar_nc4(caminho, entrada, nome_arquivo):
 #clima_dia = clima_dia(caminho_arquivo, f"{caminho_dados}climatologia_diaria.nc4")
 #clima_mes = clima_mes(caminho_arquivo, f"{caminho_dados}climatologia_mensal.nc4")
 #clima_dia =  abrindo_nc(clima_dia)
-
+"""
 # Série Histórica (geos.chm.co2.201403_202412.nc4)
 avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
 serie_temporal =  abrindo_nc(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
-
 remover_tempos = ["2014-08-10 00:00:00", "2016-08-14 21:00:00",
 					"2018-12-21 00:00:00", "2018-12-21 03:00:00"]
 remover_tempos = np.array(remover_tempos, dtype = "datetime64")
 serie_temporal = serie_temporal.sel(time = ~serie_temporal.time.isin(remover_tempos))
+serie_temporal = media_vertical(caminho_arquivo, f"{caminho_dados}serie_co2_mediavertical.nc4")
+#serie_temporal = serie_temporal.mean(dim = "lev", skipna = True)
+"""
 """
 print(f"\n{green}Série Temporal:\n{reset}{serie_temporal}")
 plot_temporal(serie_temporal, "CO2", -27, -48, 1, "serie")
@@ -199,9 +217,29 @@ salvar_csv(caminho_resultados, serie_temporal, "serie_temporal_lv1.csv")
 plot_temporal(serie_temporal, "CO2", -27, -48, "média", "serie")
 salvar_csv(caminho_resultados, serie_temporal, "serie_temporal_lvmedia.csv")
 """
-mudanca_metodologia = np.datetime64("2017-01-25 00:00:00")
+serie_temporal = abrindo_nc(f"{caminho_dados}serie_co2_mediavertical.nc4")
+mudanca_metodologia = np.datetime64("2017-01-24 00:00:00")
 serie_temporal_mudada = serie_temporal.sel(time = serie_temporal.time >= mudanca_metodologia)
-
+antes = np.datetime64("2017-01-23 00:00:00")
+depois = np.datetime64("2017-01-25 00:00:00")
+antes = serie_temporal["CO2"].sel(time = antes, method = "nearest")
+depois = serie_temporal["CO2"].sel(time = depois, method = "nearest")
+diferenca = depois - antes
+print(f"\n{green}Diferença (geral):\n{reset}{diferenca}")
+serie_temporal_alterada = serie_temporal.sel(time = serie_temporal.time <= mudanca_metodologia, method = "nearest") + diferenca
+print(f"\n{green}Alteração (geral):\n{reset}{serie_temporal_alterada}")
+# 8486 * 72 * 157 * 154 * 4 bytes ≈ 55 GB
+serie_temporal_corrigida  = xr.concat([serie_temporal_alterada, serie_temporal_mudada], dim = "time")
+serie_temporal_corrigida["CO2"] = serie_temporal_corrigida["CO2"] * 1000000
+print(f"\n{green}Série Temporal (após mudança de metodologia com correção):\n{reset}{serie_temporal_corrigida}")
+serie_temporal_corrigida.to_netcdf(f"{caminho_dados}serie_temporal_corrigida_lvmedia.nc")
+#salvar_csv(caminho_dados, serie_temporal_corrigida, "serie_temporal_corrigida_lvmedia.csv")
+#salvar_nc4(caminho_dados, serie_temporal_corrigida, "serie_temporal_lvmedia_mudametodologia.nc4")
+clima_dia(f"{caminho_dados}serie_temporal_corrigida_lvmedia.nc",
+			f"{caminho_dados}climatologia_diaria_lvmedia.nc")
+clima_mes(f"{caminho_dados}serie_temporal_corrigida_lvmedia.nc",
+			f"{caminho_dados}climatologia_mensal_lvmedia.nc")
+sys.exit()
 
 """
 print(f"\n{green}Série Temporal (após mudança de metodologia):\n{reset}{serie_temporal_mudada}")
