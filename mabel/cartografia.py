@@ -275,6 +275,8 @@ datas = ["2021-02-18 00:00:00", "2021-05-29 00:00:00",
 clima_dia = selecionar_tempo_espaco(clima_dia, "CO2", "2021-02-18 00:00:00",
 									-48.30, -48.75, -27.45, -2.90)
 plotar_tempo_espaco(clima_dia)
+# /dados4/operacao/geos_fp/co2/serie_temporal_mensal.nc
+# /dados4/operacao/geos_fp/co2/serie_temporal_diaria.nc
 '''
 sys.exit()
 
