@@ -1,5 +1,5 @@
 ###################################################
-## Arquivo adaptado para baixar dados do         ##
+## Arquivo adaptado para analisar dados do       ##
 ## NASA Center for Climate Simulation            ##
 ## High Performance Computing for Science        ##
 ## Dados: CO2                                    ##
@@ -71,6 +71,26 @@ def clima_mes(entrada, saida):
 	avisos_sinfon(entrada)
 	tempo_inicio = time.time()
 	cdo.ymonmean(input = entrada, output = saida)
+	print(f"\n{green}ARQUIVO SALVO:\n{reset}{saida}")
+	tempo_final = time.time()
+	tempo_processo = tempo_final - tempo_inicio
+	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
+	return saida
+
+def serie_diaria(entrada, saida):
+	avisos_sinfon(entrada)
+	tempo_inicio = time.time()
+	cdo.daymean(input = entrada, output = saida)
+	print(f"\n{green}ARQUIVO SALVO:\n{reset}{saida}")
+	tempo_final = time.time()
+	tempo_processo = tempo_final - tempo_inicio
+	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
+	return saida
+
+def serie_mensal(entrada, saida):
+	avisos_sinfon(entrada)
+	tempo_inicio = time.time()
+	cdo.monmean(input = entrada, output = saida)
 	print(f"\n{green}ARQUIVO SALVO:\n{reset}{saida}")
 	tempo_final = time.time()
 	tempo_processo = tempo_final - tempo_inicio
@@ -367,10 +387,26 @@ plt.show()
 # CORRIGINDO MUDANÇA DE METODOLOGIA (VALORES DESLOCADOS PARA CIMA) # lv = média
 ####################################################################
 serie_temporal =  abrindo_nc(f"{caminho_dados}serie_temporal_corrigida_lvmedia.nc")
-serie_temporal_corrigidamedia = serie_temporal.sel(lat = -27.5954, lon = -48.54, method = "nearest")
+print(f"\n{green}Série Temporal (lat = -27.5954, lon = -48.54, após mudança e níveis médios):\n{reset}{serie_temporal}")
+
+### Série Diária
+serie_temporal_diaria = serie_diaria(serie_temporal, f"{caminho_dados}serie_temporal_diaria.nc")
+serie_temporal_diaria =  abrindo_nc(f"{caminho_dados}serie_temporal_diaria.nc")
+serie_temporal_diaria_ponto = serie_temporal_diaria.sel(lat = -27.5954, lon = -48.54, method = "nearest")
+salvar_csv(caminho_dados, serie_temporal_diaria_ponto, "serie_temporal_diaria_floripa.csv")
+print(f"\n{green}Série Temporal Diária (lat = -27.5954, lon = -48.54, após mudança e níveis médios):\n{reset}{serie_temporal_diaria_ponto}")
+
+### Série Mensal
+serie_temporal_mensal = serie_mensal(serie_temporal, f"{caminho_dados}serie_temporal_mensal.nc")
+serie_temporal_mensal = abrindo_nc(f"{caminho_dados}serie_temporal_mensal.nc")
+serie_temporal_mensal_ponto = serie_temporal_mensal.sel(lat = -27.5954, lon = -48.54, method = "nearest")
+salvar_csv(caminho_dados, serie_temporal_mensal_ponto, "serie_temporal_mensal_floripa.csv")
+print(f"\n{green}Série Temporal Mensal(lat = -27.5954, lon = -48.54, após mudança e níveis médios):\n{reset}{serie_temporal_mensal_ponto}")
 #serie_temporal_pontomedia = serie_temporal_ponto.mean(dim = "lev", skipna = True)
 #serie_temporal_pontomedia = serie_temporal.sel(lat = -27, lon = -48, method = "nearest").mean(dim = "lev", skipna = True)
-print(f"\n{green}Série Temporal (lat = -27.5954, lon = -48.54, após mudança e níveis médios):\n{reset}{serie_temporal_corrigidamedia}")
+#serie_temporal_corrigidamedia = serie_temporal.sel(lat = -27.5954, lon = -48.54, method = "nearest")
+#salvar_nc4(caminho_dados, serie_temporal_corrigidamedia, "serie_temporal_lvmedia_corrigida.nc4")
+sys.exit()
 """
 serie_temporal_mudadamedia = serie_temporal_pontomedia.sel(time = serie_temporal_pontomedia.time >= mudanca_metodologia)
 print(f"\n{green}Série Temporal (lat = -27, lon = -48, após mudança e níveis médios):\n{reset}{serie_temporal_mudadamedia}")
