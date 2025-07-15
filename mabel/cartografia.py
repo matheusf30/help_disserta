@@ -144,6 +144,8 @@ def selecionar_tempo_espaco(entrada, str_var, data, lat_min, lat_max, lon_min, l
 	avisos_sinfon(entrada)
 	tempo_inicio = time.time()
 	data = np.array(data, dtype = "datetime64")
+	print(f"\n{green}DATA:\n{reset}{data}\n")
+	entrada["time"] = entrada["time"].strftime("%Y-%m-%d")
 	saida = entrada.sel(time = f"{data}",
 						lat = slice(lat_min, lat_max),
 						lon = slice(lon_min, lon_max))[str_var].squeeze()
@@ -157,7 +159,7 @@ def cdo_recorta_area(entrada, lon_min, lon_max, lat_min, lat_max, saida):
 		cdo.sellonlatbox(lon_min, lon_max, lat_min, lat_max,
 						input = entrada,
 						output = saida)
-		print(f"{cyan}América do Sul\n{green}Seleção realizada com sucesso:\n{caminho_dados}{entrada}_AS\n{reset}")
+		print(f"{cyan}Seleção:{lon_min},{lon_max},{lat_min},{lat_max}\n{green}Seleção realizada com sucesso:\n{caminho_dados}{entrada}_AS\n{reset}")
 		_REMOVER = input(f"\n{magenta}Deseja remover o arquivo de entrada? Se sim, digite 's': \n{reset}")
 		if _REMOVER == "s":
 			os.remove(entrada)
@@ -219,16 +221,12 @@ def salvar_nc4(caminho, entrada, nome_arquivo):
 		print(f"\n{green}Arquivo (.nc4) NÃO salvo:\n{reset}{entrada}")
 	return entrada_nc4
 
-
 """
 #data = "2024-06"
 data=sys.argv[1] 
 # Explodir a variável em ano e mês
 ano, mes = data.split('-')
 """
-
-
-
 
 def plotar_tempo_espaco(entrada):
 	plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
@@ -268,15 +266,89 @@ def plotar_tempo_espaco(entrada):
 	plt.show()
 
 ##### EXECUÇÕES ##################################################################
-avisos_sinfon(f"{caminho_dados}climatologia_diaria_lvmedia.nc")
-clima_dia = abrindo_nc(f"{caminho_dados}climatologia_diaria_lvmedia.nc")
-datas = ["2021-02-18 00:00:00", "2021-05-29 00:00:00",
-		"2021-07-28 00:00:00", "2021-10-25 00:00:00"]
-clima_dia = selecionar_tempo_espaco(clima_dia, "CO2", "2021-02-18 00:00:00",
-									-48.30, -48.75, -27.45, -2.90)
-plotar_tempo_espaco(clima_dia)
 # /dados4/operacao/geos_fp/co2/serie_temporal_mensal.nc
 # /dados4/operacao/geos_fp/co2/serie_temporal_diaria.nc
+avisos_sinfon(f"{caminho_dados}climatologia_diaria_lvmedia.nc")
+floripa = abrindo_nc(f"{caminho_dados}serie_temporal_diaria_floripa.nc")
+lat_min, lat_max, lon_min, lon_max = -48.30, -48.75, -27.45, -27.90
+"""
+floripa = cdo_recorta_area(f"{caminho_dados}serie_temporal_diaria.nc",
+							lon_min, lon_max, lat_min, lat_max,
+							f"{caminho_dados}serie_temporal_diaria_floripa.nc")
+
+
+
+serie_dia = selecionar_tempo_espaco(serie_dia, "CO2", "2021-02-18",
+									-48.30, -48.75, -27.45, -27.90)
+plotar_tempo_espaco(serie_dia)
+
+datas = ["2021-02-18 00:00:00", "2021-05-29 00:00:00",
+		"2021-07-28 00:00:00", "2021-10-25 00:00:00"]
+"""
+
+#sys.exit()
+data = "2021-02-18"
+data = np.array(data, dtype = "datetime64")
+plt.figure(figsize = (12, 6), frameon = False)#, layout = "tight")
+ax = plt.axes(projection = ccrs.PlateCarree())
+shp = list(shpreader.Reader("/home/sifapsc/scripts/matheus/dados_dengue/shapefiles/BR_UF_2022.shp").geometries())
+ax.add_geometries(shp, ccrs.PlateCarree(), edgecolor = "gray", facecolor = "none", linewidth = 0.3)
+ax.coastlines(resolution = "10m", color = "black", linewidth = 0.8)
+ax.add_feature(cartopy.feature.BORDERS, edgecolor = "black", linewidth = 0.5)
+#plt.show()
+#sys.exit()
+regiao = floripa["CO2"].sel(time = f"{data}").squeeze()
+print(f"\n{green}REGIÃO:\n{reset}{regiao}\n")
+#sys.exit()
+
+maxi = regiao.max().item()
+int_max = int(maxi) + 10
+mini = regiao.min().item()
+int_min = int(mini) - 10
+print(f"Valor máximo da variável na região selecionada: {int_max}")
+colors = ["#b4f0f0", "#96d2fa", "#78b9fa", "#3c95f5", "#1e6deb", "#1463d2", 
+	      "#0fa00f", "#28be28", "#50f050", "#72f06e", "#b3faaa", "#fff9aa", 
+	      "#ffe978", "#ffc13c", "#ffa200", "#ff6200", "#ff3300", "#ff1500", 
+	      "#c00100", "#a50200", "#870000", "#653b32"]
+cmap = matplotlib.colors.ListedColormap(colors)
+cmap.set_over('#000000')
+cmap.set_under('#ffffff')
+data_min = int_min # 0
+data_max = int_max
+interval = 1
+levels = np.arange(data_min, data_max + interval, interval)
+"""
+mesh = ax.pcolormesh(floripa["CO2"], robust = True)
+plt.colorbar(mesh)
+
+figure = floripa.plot.pcolormesh(robust = True,
+								norm = cls.Normalize(vmin = 0, vmax = int_max),
+								cmap = cmap, add_colorbar = False,
+								levels = levels, add_labels = False)
+
+figure = floripa["CO2"].plot(robust = True, add_colorbar = False,
+								levels = levels, add_labels = False)
+"""
+figure = regiao.plot.pcolormesh(robust = True,
+								norm = cls.Normalize(vmin = 0, vmax = int_max),
+								cmap = cmap, add_colorbar = False,
+								levels = levels, add_labels = False)
+plt.colorbar(figure, pad = 0.05, fraction = 5, extend = "max", ticks = np.arange(int_min, int_max, 50),
+				orientation = "vertical", label = "CO2 (GEOS-FP)")
+
+
+gl = ax.gridlines(crs = ccrs.PlateCarree(), color = "white", alpha = 1.0, linestyle = "--",
+					linewidth = 0.25, xlocs = np.arange(-180, 180, 5),
+					ylocs = np.arange(-90, 90, 5), draw_labels = True)
+gl.top_labels = False
+gl.right_labels = False
+plt.title(f"Concentração de CO2 (GEOS-FP)\nPeríodo observado: {data}", fontsize = 14, ha = "center")
+plt.figtext(0.55, 0.05, "Fonte: NASA Center for Climate Simulation", ha = "center", fontsize = 10)
+#plt.savefig(f"/media/produtos/merge/monthly/2024/prec_mensal_merge_{ano}{mes}.jpg",
+#			transparent = True, dpi = 300, bbox_inches = "tight", pad_inches = 0.02)
+
+plt.show()
+
 '''
 sys.exit()
 
