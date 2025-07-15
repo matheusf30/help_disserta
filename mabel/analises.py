@@ -117,6 +117,22 @@ def media_vertical(entrada, saida):
 	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
 	return saida
 
+def cdo_recorta_area(entrada, lon_min, lon_max, lat_min, lat_max, saida):
+	try:
+		cdo.sellonlatbox(lon_min, lon_max, lat_min, lat_max,
+						input = entrada,
+						output = saida)
+		print(f"{cyan}Seleção:{lon_min},{lon_max},{lat_min},{lat_max}\n{green}Seleção realizada com sucesso:\n{caminho_dados}{entrada}_AS\n{reset}")
+		_REMOVER = input(f"\n{magenta}Deseja remover o arquivo de entrada? Se sim, digite 's': \n{reset}")
+		if _REMOVER == "s":
+			os.remove(entrada)
+			print(f"\n{green}REMOVENDO:\n{reset}{entrada}\n")
+		else:
+			print(f"\n{green}Arquivo NÃO removido:\n{reset}{entrada}")
+	except:
+		print(f"{red}NÃO HÁ ARQUIVOS PARA FAZER SELEÇÃO DE ÁREA:\n{entrada}\n{reset}")
+	return saida
+
 def cdo_sel_AS(entrada):
 	lat_max = 15
 	lat_min = -60
@@ -249,6 +265,8 @@ depois = np.datetime64("2017-01-25 00:00:00")
 antes = serie_temporal["CO2"].sel(time = antes, method = "nearest")
 depois = serie_temporal["CO2"].sel(time = depois, method = "nearest")
 diferenca = depois - antes
+diferenca.to_netcdf(f"{caminho_dados}diferenca.nc")
+sys.exit()
 print(f"\n{green}Diferença (geral):\n{reset}{diferenca}")
 serie_temporal_alterada = serie_temporal.sel(time = serie_temporal.time <= mudanca_metodologia, method = "nearest") + diferenca
 print(f"\n{green}Alteração (geral):\n{reset}{serie_temporal_alterada}")
