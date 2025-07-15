@@ -235,17 +235,26 @@ def salvar_nc4(caminho, entrada, nome_arquivo):
 #clima_dia = clima_dia(caminho_arquivo, f"{caminho_dados}climatologia_diaria.nc4")
 #clima_mes = clima_mes(caminho_arquivo, f"{caminho_dados}climatologia_mensal.nc4")
 #clima_dia =  abrindo_nc(clima_dia)
-"""
-# Série Histórica (geos.chm.co2.201403_202412.nc4)
+
+# Série Temporal (geos.chm.co2.201403_202412.nc4)
 avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
 serie_temporal =  abrindo_nc(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
 remover_tempos = ["2014-08-10 00:00:00", "2016-08-14 21:00:00",
 					"2018-12-21 00:00:00", "2018-12-21 03:00:00"]
 remover_tempos = np.array(remover_tempos, dtype = "datetime64")
 serie_temporal = serie_temporal.sel(time = ~serie_temporal.time.isin(remover_tempos))
-serie_temporal = media_vertical(caminho_arquivo, f"{caminho_dados}serie_co2_mediavertical.nc4")
+antes = np.datetime64("2017-01-24 00:00:00")
+serie_antes = serie_temporal.sel(time = serie_temporal.time <= antes)
+serie_antes.to_netcdf(f"{caminho_dados}geos.antes.co2.nc4", format = "NETCDF4")
+print(f"\n{green}Série Antes:\n{reset}{serie_antes}")
+depois = np.datetime64("2017-01-25 00:00:00")
+serie_depois = serie_temporal.sel(time = serie_temporal.time >= depois)
+serie_depois.to_netcdf(f"{caminho_dados}geos.depois.co2.nc4", format = "NETCDF4")
+print(f"\n{green}Série Depois:\n{reset}{serie_depois}")
+#serie_temporal = media_vertical(caminho_arquivo, f"{caminho_dados}serie_co2_mediavertical.nc4")
 #serie_temporal = serie_temporal.mean(dim = "lev", skipna = True)
-"""
+print(f"\n{green}Série Temporal:\n{reset}{serie_temporal}")
+sys.exit()
 """
 print(f"\n{green}Série Temporal:\n{reset}{serie_temporal}")
 plot_temporal(serie_temporal, "CO2", -27, -48, 1, "serie")
