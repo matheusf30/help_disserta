@@ -138,16 +138,16 @@ geos_angulo, geos_intercepto, geos_r, geos_p_value, geos_desvio_padrao = linregr
 geos_regressao = geos_angulo * geos_tempo_num + geos_intercepto
 """
 plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
-plt.plot(oco2_tempo, oco2_valor, label = "OCO2", color = "orange")
+plt.plot(oco2_tempo, oco2_valor, label = "CO2 (OCO2)", color = "orange")
 plt.plot(oco2_tempo, oco2_regressao, label = f"Regressão Linear (OCO2) [y = {oco2_angulo:.4f} * X + {oco2_intercepto:.2f}]\n(R² = {oco2_r**2:.3f}, p = {oco2_p_value})", color = "blue", linestyle = "--") #, desvio padrão = {desvio_padrao}
 plt.gca().patch.set_facecolor("honeydew")
 """
 plt.plot(geos_tempo, geos_valor, label = "GEOS-FP", color = "red")
 plt.plot(geos_tempo, geos_regressao, label = f"Regressão Linear (GEOS-FP) [y = {geos_angulo:.4f} * X + {geos_intercepto:.2f}]\n(R² = {geos_r**2:.3f}, p = {geos_p_value})", color = "darkblue", linestyle = "--") #, desvio padrão = {desvio_padrao}
 """
-plt.plot(antes_tempo, antes_valor, label = "GEOS-FP", color = "red")
-plt.plot(antes_tempo, antes_regressao, label = f"Regressão Linear (GEOS-FP) [y = {antes_angulo:.4f} * X + {antes_intercepto:.2f}]\n(R² = {antes_r**2:.3f}, p = {antes_p_value})", color = "darkblue", linestyle = "--") #, desvio padrão = {desvio_padrao}
-plt.plot(depois_tempo, depois_valor, label = "GEOS-FP", color = "red")
+plt.plot(antes_tempo, antes_valor, label = "CO2 (GEOS-FP version 5.13)", color = "darkred")
+plt.plot(antes_tempo, antes_regressao, label = f"Regressão Linear (GEOS-FP) [y = {antes_angulo:.4f} * X + {antes_intercepto:.2f}]\n(R² = {antes_r**2:.3f}, p = {antes_p_value})", color = "darkblue", linestyle = ":") #, desvio padrão = {desvio_padrao}
+plt.plot(depois_tempo, depois_valor, label = "CO2 (GEOS-FP version 5.16)", color = "red")
 plt.plot(depois_tempo, depois_regressao, label = f"Regressão Linear (GEOS-FP) [y = {depois_angulo:.4f} * X + {depois_intercepto:.2f}]\n(R² = {depois_r**2:.3f}, p = {depois_p_value})", color = "darkblue", linestyle = "--") #, desvio padrão = {desvio_padrao}
 plt.gca().patch.set_facecolor("honeydew")
 plt.title(f"Série de CO2 (OCO2 x GEOS-FP) e Regressão Linear, no ponto de latitude (-27.5954), longitude (-48.54) e média das 72 altitudes")
