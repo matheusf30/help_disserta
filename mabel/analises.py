@@ -45,7 +45,7 @@ reset = "\033[0m"
 caminho_dados = "/dados4/operacao/geos_fp/co2/"
 nome_arquivo = "geos.chm.co2.201403_202412.nc4" #sys.argv[1]
 caminho_arquivo = f"{caminho_dados}{nome_arquivo}"
-caminho_resultados = "/home/sifapsc/scripts/matheus/help_disserta/mabel/resultados/matheus"
+caminho_resultados = "/home/sifapsc/scripts/matheus/help_disserta/mabel/resultados/matheus/"
 
 ##### FUNÇÕES ####################################################################
 def avisos_sinfon(entrada):
@@ -150,12 +150,13 @@ def cdo_sel_AS(entrada):
 
 def abrindo_nc(entrada):
 	tempo_inicio = time.time()
-	entrada = xr.open_dataset(entrada)
-	print(f"\n{green}ARQUIVO DE ENTRADA:\n{reset}{entrada}")
+	avisos_sinfon(entrada)
+	saida = xr.open_dataset(entrada)
+	print(f"\n{green}ARQUIVO DE ENTRADA:\n{reset}{saida}")
 	tempo_final = time.time()
 	tempo_processo = tempo_final - tempo_inicio
 	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
-	return entrada
+	return saida
 
 def tratando_nan(entrada, str_var):
 	tempo_inicio = time.time()
@@ -173,16 +174,16 @@ def tratando_nan(entrada, str_var):
 		print(f"\n{green}Tratamento de NaN por Deleção:\n{reset}{entrada}")	
 	else:
 		print(f"\n{red}Escolha algum método de tratamento válido\n{reset}")		
-	entrada = xr.open_dataset(entrada)
+	saida = xr.open_dataset(entrada)
 	tempo_final = time.time()
 	tempo_processo = tempo_final - tempo_inicio
 	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
-	return entrada
+	return saida
 
 def plot_temporal(entrada, str_var, latitude, longitude, nivel = None, escala_temporal = None):
 	tempo_inicio = time.time()
 	ponto = entrada[str_var].sel(lat = latitude, lon = longitude, method = "nearest")
-	ponto = ponto / 1000000
+	ponto = ponto * 1000000
 	if nivel != None:
 		if isinstance(nivel, str):
 			ponto_medio = ponto.mean(dim = "lev", skipna = True)
@@ -211,12 +212,63 @@ def plot_temporal(entrada, str_var, latitude, longitude, nivel = None, escala_te
 	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
 	return ponto_medio
 
+def plot_temporal_regressao(entrada, str_var, latitude, longitude, nivel = None, escala_temporal = None):
+	tempo_inicio = time.time()
+	ponto = entrada[str_var].sel(lat = latitude, lon = longitude, method = "nearest")
+	ponto = ponto * 1000000
+	if nivel != None:
+		if isinstance(nivel, str):
+			ponto_medio = ponto.mean(dim = "lev", skipna = True)
+		elif isinstance(nivel, int):
+			ponto_medio = ponto.sel(lev = nivel, method = "nearest")
+	else:
+		print("VAI DAR ERRO OU NÃO")	
+	plt.figure(figsize = (12, 6), layout = "tight", frameon = False)
+	ponto_medio.plot.line(x = "time", label = str_var, color = "red")
+	plt.gca().patch.set_facecolor("honeydew")
+	print(f"Tipo de variável: {type(ponto_medio)}")
+	if isinstance(ponto_medio, xr.DataArray):
+		print(f"Nome: {ponto_medio.name}")
+		print(f"Coordenadas: {list(ponto_medio.coords.keys())}")
+	elif isinstance(ponto_medio, xr.Dataset):
+		print(f"Variáveis: {list(ponto_medio.data_vars.keys())}")
+		print(f"Coordenadas: {list(ponto_medio.coords.keys())}")
+	else:
+		print(f"\n{red}Não é um xarray object\n{reset}")
+	#
+	var = ponto_medio#[str_var]
+	tempo = var["time"].values
+	tempo_num = mdates.date2num(tempo)
+	var_valor = var.values
+	angulo, intercepto, r, p_value, desvio_padrao = linregress(tempo_num, var_valor)
+	regressao = angulo * tempo_num + intercepto
+	plt.plot(tempo, regressao, color = "blue", linestyle = "--", #, desvio padrão = {desvio_padrao}
+		label = f"Regressão Linear [y = {angulo:.4f} * X + {intercepto:.2f}]\n(R² = {r**2:.3f}, p = {p_value})")
+	#
+	if isinstance(nivel, str):
+		plt.title(f"Série de {str_var}, média dos {len(entrada.lev)} níveis no ponto de latitude ({latitude}) e longitude ({longitude})")
+	elif isinstance(nivel, int):
+		plt.title(f"Série de {str_var}, no ponto de altitude ({nivel}), latitude ({latitude}) e longitude ({longitude})")
+	plt.grid(True)
+	plt.legend()
+	if escala_temporal == None:
+		plt.xlabel("Tempo")
+	else:
+		plt.xlabel(f"Tempo ({escala_temporal})")
+	plt.ylabel(str_var)
+	plt.tight_layout()
+	plt.show()
+	tempo_final = time.time()
+	tempo_processo = tempo_final - tempo_inicio
+	print(f"\n{green}TEMPO DE PROCESSAMENTO:\n{reset}{tempo_processo:.2f} s.\n")
+	return ponto_medio
+
 def salvar_csv(caminho, entrada, nome_arquivo):
 	_SALVAR = input(f"\n{magenta}Deseja salvar a série temporal em arquivo.csv? Se sim, digite 's': \n{reset}")
 	if _SALVAR == "s":
 		entrada_csv = entrada.to_dataframe().reset_index()
-		entrada_csv.to_csv(f"{caminho_dados}{nome_arquivo}", index = False)
-		print(f"\n{green}SALVANDO:\n{reset}{entrada_csv}\n")
+		entrada_csv.to_csv(f"{caminho}{nome_arquivo}", index = False)
+		print(f"\n{green}SALVANDO:\n{reset}{caminho}\n{entrada_csv}\n")
 	else:
 		print(f"\n{green}Arquivo (.csv) NÃO salvo:\n{reset}{entrada}")
 	return entrada_csv
@@ -224,8 +276,8 @@ def salvar_csv(caminho, entrada, nome_arquivo):
 def salvar_nc4(caminho, entrada, nome_arquivo):
 	_SALVAR = input(f"\n{magenta}Deseja salvar a série temporal em arquivo.nc4? Se sim, digite 's': \n{reset}")
 	if _SALVAR == "s":
-		entrada_nc4 = entrada.to_netcdf(f"{caminho_dados}{nome_arquivo}", engine = "netcdf4", format = "NETCDF4")
-		print(f"\n{green}SALVANDO:\n{reset}{entrada_nc4}\n")
+		entrada_nc4 = entrada.to_netcdf(f"{caminho}{nome_arquivo}", engine = "netcdf4", format = "NETCDF4")
+		print(f"\n{green}SALVANDO:\n{reset}{caminho}\n{entrada_nc4}\n")
 	else:
 		print(f"\n{green}Arquivo (.nc4) NÃO salvo:\n{reset}{entrada}")
 	return entrada_nc4
@@ -236,8 +288,19 @@ def salvar_nc4(caminho, entrada, nome_arquivo):
 #clima_mes = clima_mes(caminho_arquivo, f"{caminho_dados}climatologia_mensal.nc4")
 #clima_dia =  abrindo_nc(clima_dia)
 # Série Temporal (geos.serie_mensal.co2.antes.nc4 - geos.serie_mensal.co2.depois.nc4)
+serie_antes = abrindo_nc(f"{caminho_dados}geos.serie_mensal.co2.antes.nc4")
+floripa_antes = plot_temporal(serie_antes, "CO2", -27.5954, -48.54, "média", "meses")
+salvar_csv(caminho_resultados, floripa_antes, "floripa_antes.csv")
+plot_temporal_regressao(serie_antes, "CO2", -27.5954, -48.54, "média", "meses")
+serie_depois = abrindo_nc(f"{caminho_dados}geos.serie_mensal.co2.depois.nc4")
+floripa_depois = plot_temporal(serie_depois, "CO2", -27.5954, -48.54, "média", "meses")
+salvar_csv(caminho_resultados, floripa_depois, "floripa_depois.csv")
+plot_temporal_regressao(serie_depois, "CO2", -27.5954, -48.54, "média", "meses")
+serie_total = xr.concat([serie_antes, serie_depois], dim = "time")
+plot_temporal(serie_total, "CO2", -27.5954, -48.54, "média", "meses")
+plot_temporal_regressao(serie_total, "CO2", -27.5954, -48.54, "média", "meses")
 
-
+sys.exit()
 # Série Temporal (geos.chm.co2.201403_202412.nc4)
 avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
 serie_temporal =  abrindo_nc(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
@@ -256,7 +319,7 @@ print(f"\n{green}Série Depois:\n{reset}{serie_depois}")
 #serie_temporal = media_vertical(caminho_arquivo, f"{caminho_dados}serie_co2_mediavertical.nc4")
 #serie_temporal = serie_temporal.mean(dim = "lev", skipna = True)
 print(f"\n{green}Série Temporal:\n{reset}{serie_temporal}")
-sys.exit()
+
 """
 print(f"\n{green}Série Temporal:\n{reset}{serie_temporal}")
 plot_temporal(serie_temporal, "CO2", -27, -48, 1, "serie")
