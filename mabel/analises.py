@@ -235,6 +235,8 @@ def salvar_nc4(caminho, entrada, nome_arquivo):
 #clima_dia = clima_dia(caminho_arquivo, f"{caminho_dados}climatologia_diaria.nc4")
 #clima_mes = clima_mes(caminho_arquivo, f"{caminho_dados}climatologia_mensal.nc4")
 #clima_dia =  abrindo_nc(clima_dia)
+# Série Temporal (geos.serie_mensal.co2.antes.nc4 - geos.serie_mensal.co2.depois.nc4)
+
 
 # Série Temporal (geos.chm.co2.201403_202412.nc4)
 avisos_sinfon(f"{caminho_dados}geos.chm.co2.201403_202412.nc4")
