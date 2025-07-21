@@ -266,12 +266,18 @@ def plotar_tempo_espaco(entrada):
 	plt.show()
 
 ##### EXECUÇÕES ##################################################################
-# /dados4/operacao/geos_fp/co2/serie_temporal_mensal.nc
-# /dados4/operacao/geos_fp/co2/serie_temporal_diaria.nc
-avisos_sinfon(f"{caminho_dados}climatologia_diaria_lvmedia.nc")
-floripa = abrindo_nc(f"{caminho_dados}serie_temporal_diaria_floripa.nc")
+# /dados4/operacao/geos_fp/co2/geos.serie_mensal.co2.depois.nc4
+# /dados4/operacao/geos_fp/co2/geos.serie_diaria.co2.depois.nc4
+avisos_sinfon(f"{caminho_dados}geos.serie_diaria.co2.depois.nc4")
+floripa = abrindo_nc(f"{caminho_dados}geos.serie_diaria.co2.depois.nc4")
+floripa_mes = abrindo_nc(f"{caminho_dados}geos.serie_mensal.co2.depois.nc4")
 lat_min, lat_max, lon_min, lon_max = -48.30, -48.75, -27.45, -27.90
 """
+floripa = floripa.sel(lat = slice(lat_min, lat_max),
+						lon = slice(lon_min, lon_max))
+
+.sel(lat = slice(lat_min, lat_max),
+						lon = slice(lon_min, lon_max))
 floripa = cdo_recorta_area(f"{caminho_dados}serie_temporal_diaria.nc",
 							lon_min, lon_max, lat_min, lat_max,
 							f"{caminho_dados}serie_temporal_diaria_floripa.nc")
@@ -284,9 +290,100 @@ plotar_tempo_espaco(serie_dia)
 
 datas = ["2021-02-18 00:00:00", "2021-05-29 00:00:00",
 		"2021-07-28 00:00:00", "2021-10-25 00:00:00"]
+
 """
+##### DIÁRIAS
+#dias = pd.to_datetime(["2021-02-18", "2021-05-29", "2021-07-28", "2021-10-25"])
+fig, axes = plt.subplots(nrows = 2, ncols = 2, figsize=(12, 8), frameon = False,
+						subplot_kw={"projection": ccrs.PlateCarree()})
+axes = axes.flatten()
+dias = ["2021-02-18", "2021-05-29", "2021-07-28", "2021-10-25"]
+for i, dia in enumerate(dias):
+#dia = np.array("2021-02-18", dtype = "datetime64")
+	co2 = floripa["CO2"].sel(time = dia).mean(dim = "lev")
+	co2 = co2 * 1000000
+	im = co2.plot(ax = axes[i], transform = ccrs.PlateCarree(),
+					cmap = "coolwarm", add_colorbar = False) # "viridis_r" copper_r coolwarm magma inferno_r
+	axes[i].coastlines()
+	axes[i].gridlines(draw_labels = True, dms = True, linestyle = ":",
+						x_inline = False, y_inline = False)
+	axes[i].set_title(f"Concentração de CO2 (GEOS-FP v-5.16): {dia}")
+
+fig.colorbar(im, ax = axes, orientation = "vertical",
+			fraction = 0.03, pad = 0.1, label = "CO2 (ppm)")
+plt.tight_layout(rect = [0, 0, 0.95, 1])
+plt.suptitle("Concentração de CO2 (GEOS-FP v-5.16)", fontsize = 16, y = 1.02)
+#plt.savefig('co2_maps.png')
+plt.show()
+plt.close(fig)
 
 #sys.exit()
+
+for i, dia in enumerate(dias):
+	fig, ax = plt.subplots(figsize=(10, 8), frameon = False,
+							subplot_kw={"projection": ccrs.PlateCarree()})
+	co2 = floripa["CO2"].sel(time = dia).mean(dim = ["time", "lev"])
+	co2 = co2 * 1000000
+	co2.plot(ax = ax, transform = ccrs.PlateCarree(),
+			cmap = "coolwarm", cbar_kwargs={"label" : "CO2 (ppm)",
+											"shrink" : 0.7,
+											"pad" : 0.1})
+	ax.coastlines()
+	ax.gridlines(draw_labels = True, dms = True, linestyle = ":",
+					x_inline = False, y_inline = False)
+	ax.set_title(f"Concentração de CO2 (GEOS-FP v-5.16): {dia}")
+	#plt.savefig(f'co2_map_{date}.png', dpi=300)
+	plt.show()
+	plt.close(fig)
+
+##### MENSAIS 
+
+fig, axes = plt.subplots(nrows = 2, ncols = 2, figsize=(12, 8), frameon = False,
+						subplot_kw={"projection" : ccrs.PlateCarree()})
+axes = axes.flatten()
+meses = ["2021-02", "2021-05", "2021-07", "2021-10"]
+for i, mes in enumerate(meses):
+#dia = np.array("2021-02-18", dtype = "datetime64")
+	co2 = floripa["CO2"].sel(time = mes, method = "nearest").mean(dim = "lev")
+	co2 = co2 * 1000000
+	im = co2.plot.pcolormesh(ax = axes[i], transform = ccrs.PlateCarree(),
+					cmap = "coolwarm", add_colorbar = False, x = "lon", y = "lat",
+					cbar_kwargs={"label" : "CO2 (ppm)"}) # "viridis_r" copper_r coolwarm magma inferno_r
+	axes[i].coastlines()
+	axes[i].gridlines(draw_labels = True, dms = True, linestyle = ":",
+						x_inline = False, y_inline = False)
+	axes[i].set_title(f"Concentração de CO2 (GEOS-FP v-5.16): {mes}")
+fig.colorbar(im, ax = axes, orientation = "vertical",
+			fraction = 0.03, pad = 0.1, label = "CO2 (ppm)")
+plt.tight_layout(rect = [0, 0, 0.95, 1])
+plt.suptitle("Concentração de CO2 (GEOS-FP v-5.16)", fontsize = 16, y = 1.02)
+#plt.savefig('co2_maps.png')
+plt.show()
+plt.close(fig)
+
+#sys.exit()
+
+for i, mes in enumerate(meses):
+	fig, ax = plt.subplots(figsize=(10, 8), frameon = False,
+							subplot_kw={"projection": ccrs.PlateCarree()})
+	co2 = floripa["CO2"].sel(time = dia, method = "nearest").mean(dim = ["time", "lev"])
+	co2 = co2 * 1000000
+	co2.plot.pcolormesh(ax = ax, transform = ccrs.PlateCarree(),
+						cmap = "coolwarm", cbar_kwargs={"label" : "CO2 (ppm)",
+														"shrink" : 0.7,
+														"pad" : 0.1})
+	ax.coastlines()
+	ax.gridlines(draw_labels = True, dms = True, linestyle = ":",
+					x_inline = False, y_inline = False)
+	ax.set_title(f"Concentração de CO2 (GEOS-FP v-5.16): {mes}")
+	#plt.savefig(f'co2_map_{date}.png', dpi=300)
+	plt.show()
+	plt.close(fig)
+
+
+
+
+sys.exit()
 data = "2021-02-18"
 data = np.array(data, dtype = "datetime64")
 plt.figure(figsize = (12, 6), frameon = False)#, layout = "tight")
