@@ -256,7 +256,7 @@ def plotar_tempo_espaco(entrada):
 	gl = ax.gridlines(crs = ccrs.PlateCarree(), color = "white", alpha = 1.0, linestyle = "--", linewidth = 0.25, xlocs = np.arange(-180, 180, 5), ylocs = np.arange(-90, 90, 5), draw_labels = True)
 	gl.top_labels = False
 	gl.right_labels = False
-	plt.colorbar(figure, pad = 0.05, fraction = 0.05, extend = "max", ticks = np.arange(0, int_max, 50), orientation = "vertical", label = str_var)
+	plt.colorbar(figure, ax = ax.ravel().to_list(), pad = 0.05, fraction = 0.05, extend = "max", ticks = np.arange(0, int_max, 50), orientation = "vertical", label = str_var)
 	plt.title(f"Precipitação Acumulada Mensal (mm) - Sul do Brasil\nPeríodo observado: {mes}/{ano}",
 			fontsize = 14, ha = "center")
 	plt.figtext(0.55, 0.05, "Fonte: MERGE - CPTEC", ha = "center", fontsize = 10)
