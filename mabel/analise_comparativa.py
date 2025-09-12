@@ -66,7 +66,7 @@ serie_floripa_antes = serie_floripa_antes[["time", "CO2"]]
 serie_floripa_antes["time"] = pd.to_datetime(serie_floripa_antes["time"]).dt.strftime("%Y-%m-%d")
 serie_floripa_antes["time"] = pd.to_datetime(serie_floripa_antes["time"])
 serie_floripa_antes = serie_floripa_antes.rename(columns = {"time" : "data", "CO2": "antes"})
-serie_floripa_antes = serie_floripa_antes.set_index("data")#.resample("M").mean()
+serie_floripa_antes = serie_floripa_antes.see_arquivo = "geos.chm.co2.201403_202412.nc4" #st_index("data")#.resample("M").mean()
 print(f"\n{green}GEOS-FP Floripa (antes):\n{reset}{serie_floripa_antes}\n{serie_floripa_antes.info()}")
 serie_floripa_depois = pd.read_csv(f"{caminho_resultados}floripa_depois.csv")
 print(f"\n{green}GEOS-FP Floripa (depois):\n{reset}{serie_floripa_depois}\n{serie_floripa_depois.info()}")
