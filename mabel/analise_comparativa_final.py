@@ -47,7 +47,12 @@ nome_arquivo = "geos.chm.co2.201403_202412.nc4" #sys.argv[1]
 caminho_arquivo = f"{caminho_dados}{nome_arquivo}"
 caminho_resultados = "/home/sifapsc/scripts/matheus/help_disserta/mabel/resultados/matheus/"
 #/home/sifapsc/scripts/scripts_mabel/co2/outdata... 
-#geosfp_antes_Florianopolis.csv geosfp_depois_Florianopolis.csv oco2_Florianopolis.csv
+# geosfp_antes_Florianopolis.csv geosfp_depois_Florianopolis.csv oco2_Florianopolis.csv
+# Sinop
+# Manaus
+# Recife
+# Chapecó
+# São Paulo
 
 ### EXECUÇÕES #####################################################################
 serie_floripa_oco2 = pd.read_csv("/home/sifapsc/scripts/matheus/help_disserta/mabel/serie_floripa.txt")
